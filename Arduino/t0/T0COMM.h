@@ -10,11 +10,11 @@ public:
         Serial2.begin(115200);
     }
 
-    void led(int strip, Color color, Mode mode){
+    void led(int strip, Mode mode, Color color){
         char send[3];
         send[0] = strip;    //1
-        send[1] = color;    //0
-        send[2] = mode;     //1s
+        send[1] = mode;    //0
+        send[2] = color;     //1s
         Serial2.write(send, 3);
     }
 
