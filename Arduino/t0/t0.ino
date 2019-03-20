@@ -1,5 +1,5 @@
 #include <Nextion.h>
-#include "T0COMM.h"
+#include "t0_comm.h"
 #include "utility.h"
 #include "pins.h"
 #include "dc_motor.h"
@@ -31,7 +31,7 @@ void updateBBL() { BL.updateB(); }
 void setup() { 
   	pinMode(LED_BUILTIN, OUTPUT);
 
-    t0comm.initiallize();
+    t0comm.initialize();
     delay(3000);
     t0comm.led(1,T0COMM::mode_fade, T0COMM::red);
 
@@ -58,7 +58,8 @@ void loop() {
   		TLedStatus = !TLedStatus;
    	}
     if (TStrip) {
-      t0comm.led(0, T0COMM::mode_fade, (T0COMM::Color)random(0, 4));
+      t0comm.ledOn(0);
+      t0comm.ledRGBA(0, 128,50, 240, 0);
     }
     delay(1);
   }
