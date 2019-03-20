@@ -3,7 +3,7 @@
 
 class LEDStrip {
 public:
-    enum Mode {mode_fade, mode_blink};
+    enum Mode { mode_fade, mode_blink };
     enum Color { red, green, blue, white };
 
     LEDStrip(int pR, int pG, int pB, int pA): pR(pR), pG(pG), pB(pB), pA(pA) {
@@ -11,10 +11,11 @@ public:
         pinMode(pG, OUTPUT);
         pinMode(pB, OUTPUT);
         pinMode(pA, OUTPUT);
+        globalTimer.setOnlyOnce();
         off();
     }
 
-    void rgba(int rval, int gval, int bval, int aval){
+    void rgba(int rval, int gval, int bval, int aval) {
         color[red] = map(rval, 0, 1023, 0, 1023);
         color[green] = map(gval, 0, 1023, 0, 1023);
         color[blue] = map(bval, 0, 1023, 0, 1023);
@@ -25,8 +26,8 @@ public:
     void on(){ rgba(maxPWM, maxPWM, maxPWM, maxPWM); }
     void off(){ rgba(0, 0, 0, 0); }
     
-    void blinkMode(Color color, int time = 50){
-        blinkTime = time;
+    void blinkMode(Color color, int time = 50) {
+        blinkTimer.reset(time);
         blinkColor = color;
         mode = mode_blink; 
         blinkPos = 1;    
@@ -34,9 +35,9 @@ public:
         update();
     }
 
-    void fadeMode(Color color, int time = 50, int inc = 5){
+    void fadeMode(Color color, int time = 50, int inc = 5) {
         fadeInc = inc;
-        fadeTime = time;
+        fadeTimer.reset(time);
         fadeColor = color;
         mode = mode_fade; 
         fadePos = 1;    
@@ -44,10 +45,14 @@ public:
         update();
     }
 
-    void update(){
-        t1 = millis();
-        if(mode == mode_fade) fade();
-        if(mode == mode_blink) blink();
+    void setTimer(int time) {
+        globalTimer.reset(time);
+    }
+
+    void update() {
+        if(globalTimer) 
+        if (mode == mode_fade) fade();
+        if (mode == mode_blink) blink();
     }
 
 protected:
@@ -58,22 +63,20 @@ protected:
         analogWrite(pA, color[white]);    
     }
       
-    void fade(){
+    void fade() {
         int h = color[fadeColor];
-        if(t1 - t0 > fadeTime){
+        if (fadeTimer) {
             fadePos = h > maxPWM ? -1 : h  <= 0 ? 1 : fadePos;
             h = h + fadeInc * fadePos;
             color[fadeColor] = map(h, 0, 1023, 0, 1023);
-            t0 = millis();
         }  
         setValues();      
     }
 
-    void blink(){
-        if(t1 - t0 > blinkTime){
+    void blink() {
+        if (blinkTimer) {
             blinkPos = !blinkPos;
             color[blinkColor] = blinkPos * maxPWM;
-            t0 = millis();
         }  
         setValues();      
     }
@@ -81,8 +84,6 @@ protected:
         
 private:
     int mode;
-    int t0 = 0;
-    int t1 = 0;
     int color[4];
     int pR, pG, pB, pA;
     int maxPWM = 256;
@@ -90,9 +91,11 @@ private:
     int fadeInc = 20;
     int fadePos = 1;
     int fadeColor = 1;
-    int fadeTime = 20; // ms
-
+    
     int blinkPos = 1;
     int blinkColor = 1;
-    int blinkTime = 20; // ms
+
+    Timer fadeTimer;
+    Timer blinkTimer;
+    Timer globalTimer;
 };
