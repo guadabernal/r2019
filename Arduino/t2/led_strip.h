@@ -1,5 +1,6 @@
 #pragma once
 #include <Arduino.h>
+#include "utility.h"
 
 #define MAX_PWM 1023
 
@@ -44,7 +45,7 @@ const uint8_t transitionSetSize = 4;
 const RGBWColor transitionTable[transitionSetSize][transitionColorsSize] =
 {
     {RED, LIME, BLUE, YELLOW, CYAN, MAGENTA},
-    {MARRON, OLIVE, GREEN, PURPLE, TEAL, NAVY},
+    {MAROON, OLIVE, GREEN, PURPLE, TEAL, NAVY},
     {RED, ORANGE, LIME, GREEN, BLUE, TEAL},
     {RED, BLUE, RED, BLUE, RED, BLUE} // police mode
 };
@@ -53,17 +54,15 @@ const RGBWColor transitionTable[transitionSetSize][transitionColorsSize] =
 class LEDStrip {
 public:
     // Default constructor
-    LEDStrip() : color(BLACK) {
-        offTimer.setResetWhenDone(false);
-    }
+    LEDStrip() : color(BLACK) {}
 
     // Constructor with pins
-    LEDStrip(uint8_t pR, uint8_t pG, uint8_t pB, uint8_t pA) : pR(pR), pG(pG), pB(pB), pA(pA), color(BLACK) {
+    LEDStrip(uint8_t pR, uint8_t pG, uint8_t pB, uint8_t pA) 
+    : pR(pR), pG(pG), pB(pB), pA(pA), color(BLACK) {
         pinMode(pR, OUTPUT);
         pinMode(pG, OUTPUT);
         pinMode(pB, OUTPUT);
         pinMode(pA, OUTPUT);
-        offTimer.setResetWhenDone(false);
     }
 
     // Set LEDStrip PWM pins
@@ -90,12 +89,6 @@ public:
         update();
     }
 
-    // turn off led strip after certain time
-    void off(uint16_t time) {
-        offTimer.reset(time);
-        update();
-    }
-    
     // set color with rgba values. Clears all modes
     void rgba(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 0) { 
         clearCurrentMode(); 
@@ -147,7 +140,7 @@ public:
 
     // dim the LED brightness
     void dim(uint8_t v) {
-        dimValue = clip(v, 0, 255);
+        dimValue = clip<uint8_t>(v, 0, 255);
         update();
     }
    
@@ -165,7 +158,7 @@ public:
     void jumpMode(uint8_t set, uint16_t time = 500) {
         clearCurrentMode(); 
         jumpEnable = true;
-        jumpSet = clip(set, 0, transitionSetSize - 1);
+        jumpSet = clip<uint8_t>(set, 0, transitionSetSize - 1);
         jumpIndex = 0;
         jumpTimer.reset(time);
         update();
@@ -176,7 +169,7 @@ public:
     void smoothMode(uint8_t set, uint16_t time = 500) {
         clearCurrentMode(); 
         smoothEnable = true;
-        smoothSet = clip(set, 0, transitionSetSize - 1);
+        smoothSet = clip<uint8_t>(set, 0, transitionSetSize - 1);
         smoothIndex = 0;
         smoothTimer.reset(time);
         update();
@@ -187,7 +180,7 @@ public:
     void fadeMode(uint8_t set = 0, uint16_t time = 500) {
         clearCurrentMode(); 
         fadeEnable = true;
-        fadeSet = clip(set, 0, transitionSetSize - 1);
+        fadeSet = clip<uint8_t>(set, 0, transitionSetSize - 1);
         fadeIndex = 0;
         fadeTimer.reset(time);
         update(); 
@@ -207,13 +200,8 @@ public:
     // Update the color based on the current mode
     void update() {
         if (ledEnable) {
-            if (offTimer) {
-                off();
-                return;
-            }
-
             if (blinkEnable && blinkTimer) {
-                blinkLEDOn = !blinkLEDOn
+                blinkLEDOn = !blinkLEDOn;
                 if (!blinkLEDOn) return;
             }
 
@@ -255,7 +243,10 @@ public:
                     color = interpolateRGB(color, BLACK, 1 - 2 * et);
             }
 
-            writeValues();
+            writeCurrentColor();
+        }
+        else {
+          writeValues(0, 0, 0, 0);
         }
     }
 
@@ -267,8 +258,8 @@ protected:
         fadeCurrentEnable = false;
     }
 
-    uint8_t colorToPWM(uint8_t color) {
-        return clip(color / 255.0 * dimValue / 255.0 * MAX_PWM, 0, MAX_PWM);
+    uint16_t colorToPWM(uint8_t color) {
+        return clip<uint16_t>((uint16_t)(color / 255.0 * dimValue / 255.0 * MAX_PWM), 0, MAX_PWM);
     }
 
     RGBWColor interpolateRGB(const RGBWColor &a, const RGBWColor &b, float t) {
@@ -280,23 +271,24 @@ protected:
         return c;
     }
 
-    void writeValues() {
-        analogWrite(pR, colorToPWM(color.r));
-        analogWrite(pG, colorToPWM(color.g));
-        analogWrite(pB, colorToPWM(color.b));
-        analogWrite(pA, colorToPWM(color.a));
+    void writeValues(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+        analogWrite(pR, colorToPWM(r));
+        analogWrite(pG, colorToPWM(g));
+        analogWrite(pB, colorToPWM(b));
+        analogWrite(pA, colorToPWM(a));
     }
+    void writeCurrentColor() {
+        writeValues(color.r, color.g, color.b, color.a);
+    }    
 private:
-    RGBWColor color;
     uint8_t pR, pG, pB, pA;
+    RGBWColor color;
     uint8_t dimValue = 50;
     bool ledEnable = true;
 
-    Timer offTimer;
-
-    bool blinkOnceEnable = false;
-    bool blinkOnceLEDOn = false;
-    Timer blinkOnceTimer;
+    bool blinkEnable = false;
+    bool blinkLEDOn = false;
+    Timer blinkTimer;
 
     bool jumpEnable = false;
     uint8_t jumpSet = 0;
@@ -316,7 +308,7 @@ private:
     bool fadeCurrentEnable = true;
     RGBWColor fadeCurrentColor;
     uint8_t fadeCurrentIndex = 0;
-    Timer fadeCurrentTimer
+    Timer fadeCurrentTimer;
 };
 
 } // namespace LEDStrip

@@ -1,5 +1,6 @@
 #include "led_strip.h"
 #include "utility.h"
+#include "pins.h"
 
 LEDStrip::LEDStrip strip[2];
 
@@ -25,28 +26,45 @@ void setup() {
 #define CMD_LED_SMOOTHMODE      13
 #define CMD_LED_FADEMODE        14
 #define CMD_LED_FADECURRENTMODE 15
+#define CMD_LED_OFFMODE         16
 #define CMD_BATTERY_CAPACITY    50
 
 
 void loop() {
     if(Serial1.available() > 0){
         uint8_t cmd;
-        Serial1Read<uint8_t>(&cmd)
+        Serial1Read<uint8_t>(&cmd);
         switch (cmd) {
-            CMD_LED_ON: {
+            case CMD_LED_ON: {
                 uint8_t index;
                 Serial1Read<uint8_t>(&index);
-                if (index < 2) led_strip[index].on();
+                if (index < 2) strip[index].on();
                 break;
             }
-            CMD_LED_RGBA: {
-                uint8_t idx;
+            case CMD_LED_OFF: {
+                uint8_t index;
+                Serial1Read<uint8_t>(&index);
+                if (index < 2) strip[index].off();
+                break;
+            }
+            case CMD_LED_RGBA: {
+                uint8_t index;
                 uint8_t rgba[4];
                 Serial1Read<uint8_t>(&index);
                 Serial1Read<uint8_t>(rgba, 4);
-                if (index < 2) led_strip[index].rgba(rgba[0],rgba[1],rgba[2],rgba[3]);
+                if (index < 2) strip[index].rgba(rgba[0],rgba[1],rgba[2],rgba[3]);
                 break;
             }
+            case CMD_LED_JUMPMODE: {
+                uint8_t index;
+                uint8_t set;
+                uint16_t time;
+                Serial1Read<uint8_t>(&index);
+                Serial1Read<uint8_t>(&set);
+                Serial1Read<uint16_t>(&time);
+                if (index < 2) strip[index].jumpMode(set, time);
+                break;
+            }        
             // .. describe other commands
         }
     }

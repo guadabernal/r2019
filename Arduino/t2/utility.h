@@ -1,6 +1,22 @@
 #pragma once
 #include <Arduino.h>
 
+template <typename T>
+void Serial1Read(T* p, uint16_t count = 1) {
+    while((uint16_t)(Serial1.available()) < count * sizeof(T)) delay(1);
+    Serial1.readBytes((uint8_t*) p, count * sizeof(T));
+}
+
+template<typename T>
+void Serial1Write(T* p, uint16_t count = 1) {
+    Serial1.write((uint8_t*) p, count * sizeof(T));
+}
+
+template<typename T>
+T clip(T v, T vmin, T vmax)
+{
+    return v < vmin ? vmin : v > vmax ? vmax : v;
+}
 
 class Timer {
 public:
@@ -19,7 +35,7 @@ public:
     }
 
     float elapsedPercentage() {
-        return clip((t1 - t0) / float(time), 0, 1);
+        return clip<float>((t1 - t0) / float(time), 0, 1);
     }
 
     bool isDone() {
@@ -47,20 +63,3 @@ private:
   int time;
   bool resetWhenDone = true;
 };
-
-template<typename T>
-void Serial1Read<T>(T* p, uint16_t count = 1) {
-    while(Serial1.available() < count * sizeof(T)) delay(1);
-    Serial1.readBytes((uint8_t*) p, count * sizeof(T));
-}
-
-template<typename T>
-void Serial1Write<T>(T* p, uint16_t count = 1) {
-    Serial1.write((uint8_t*) p, count * sizeof(T));
-}
-
-template<typename T>
-T clip<T>(T v, t vmin, T vmax)
-{
-    return v < vmin ? vmin : v > vmax ? vmax : v;
-}

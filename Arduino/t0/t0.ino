@@ -3,21 +3,16 @@
 #include "utility.h"
 #include "pins.h"
 #include "dc_motor.h"
+#include "ui.h"
+#include "pidS.h"
 
-T0COMM t0comm;
-int robotStatus = 0;
-
+T0COMM::T0COMM t0comm;
 
 // Motor(int pinA, int pinB, int pinPWM, int pinEnaA, int pinEnaB, int pinCS)
 Motor FR(AEFR, BEFR, PWMFR, INAFR, INBFR, CSFR);
 Motor FL(AEFL, BEFL, PWMFL, INAFL, INBFL, CSFL);
 Motor BR(AEBR, BEBR, PWMBR, INABR, INBBR, CSBR);
 Motor BL(AEBL, BEBL, PWMBL, INABL, INBBL, CSBL);
-
-NexButton bStart = NexButton(0, 1, "bStart");
-NexTouch *nex_listen_list[] = { &bStart };
-
-void bStartPopCallback(void *ptr) { robotStatus = 1; }
 
 void updateAFR() { FR.updateA(); }
 void updateBFR() { FR.updateB(); }
@@ -32,9 +27,8 @@ void setup() {
   	pinMode(LED_BUILTIN, OUTPUT);
 
     t0comm.initialize();
-    delay(3000);
-    t0comm.led(1,T0COMM::mode_fade, T0COMM::red);
-
+    BL.setupMotor();
+    
     attachInterrupt(digitalPinToInterrupt(FR.getPinA()), updateAFR, CHANGE);
     attachInterrupt(digitalPinToInterrupt(FR.getPinB()), updateBFR, CHANGE);
     attachInterrupt(digitalPinToInterrupt(FL.getPinA()), updateAFL, CHANGE);
@@ -43,27 +37,95 @@ void setup() {
     attachInterrupt(digitalPinToInterrupt(BR.getPinB()), updateBBR, CHANGE);
     attachInterrupt(digitalPinToInterrupt(BL.getPinA()), updateABL, CHANGE);
     attachInterrupt(digitalPinToInterrupt(BL.getPinB()), updateBBL, CHANGE);
-    Serial3.begin(115200);
-    bStart.attachPop(bStartPopCallback);
+
+    UIInitialize();
+    
+    delay(1000);
+    t0comm.ledOn(0);
+    t0comm.ledRGBA(0, 30, 150, 240, 0);
+    delay(1000);
+    t0comm.ledOff(0);
+    DebugSerial.print("setup done");
+
 }
 
 Timer TLed(2000);
 Timer TStrip(2000);
+PID<int32_t, float> pid(1600, 0.5, 0.002, 0.09, 1022, -1022);
+
+template <typename T> int sgn(T val) {
+    return (T(0) < val) - (val < T(0));
+}
 
 int TLedStatus = HIGH;
+long t0 = 0;
+bool notset = true;
+float w0 = 0;
+long tinit=0;
 void loop() {
-  if (robotStatus) {
+  
+ // DebugSerial.print("BL Counter = ");
+ //DebugSerial.println(BL.counter); 
+
+  if (robotEnable) {
   	if (TLed) { 
   		digitalWrite(LED_BUILTIN, TLedStatus); 
   		TLedStatus = !TLedStatus;
    	}
-    if (TStrip) {
-      t0comm.ledOn(0);
-      t0comm.ledRGBA(0, 128,50, 240, 0);
+//    if (TStrip) {
+//      t0comm.ledOn(0);
+//      t0comm.ledJumpMode(0, random(0, 4), 300);
+//    }
+    if (notset) { 
+      t0 = micros();
+      notset = false;
+      tinit= micros();
     }
-    delay(1);
+    long t1 = micros() - t0;
+    if (t1 < 1500000) {
+
+      float pw = pid.compute(BL.counter);
+      if (pw < 0)
+        BL.dir(1); // right negative
+      else
+        BL.dir(0); // left positive
+
+        
+      float dw = pw - w0;
+//      Serial.print("w0 = ");
+//      Serial.print(w0);     
+//      Serial.print("  Pw = ");
+//      Serial.print(pw);     
+//      Serial.print("  dw = ");
+//      Serial.print(dw);     
+      //if (abs(dw) > 15) pw = w0 + 15 * sgn(dw);
+//      Serial.print("  PwF = ");
+//      Serial.print(pw);           
+//      Serial.print(" counter = ");
+      
+      Serial.print(long((micros() - tinit) / 1E3));
+      Serial.print(" ");
+      Serial.print(pid.getTarget());
+      Serial.print(" ");
+      Serial.println(BL.counter);
+      w0 = pw;
+      BL.speed(abs(pw));
+    }
+    else {
+      BL.stop();
+      if (pid.getTarget() == 0) pid.reset(1600); 
+      else if(pid.getTarget() == 1600) pid.reset(0);
+      delay(1000);
+      t0 = micros();
+    }
+
+    delay(5);
   }
   else {
- 	  delay(100);
+    BL.off();
+
+    t0comm.ledOff(0);
+ 	  delay(10);
   }
+  nexLoop(nex_listen_list);
 }
