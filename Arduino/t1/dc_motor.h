@@ -8,11 +8,14 @@
 #define MOTOR_INIT        2 
 #define MOTOR_INIT_FINE0  3
 #define MOTOR_INIT_FINE1  4
-#define MOTOR_INIT_FINE2  5
 #define MOTOR_TO_ANG      7
 
 #define MOTOR_CCW 0
 #define MOTOR_CW  1
+
+#define MOTOR_CPR           3200
+#define GEAR_FACTOR         6
+#define ANGLE_COUNT_FACTOR  GEAR_FACTOR * MOTOR_CPR / 360.0
 
 class Motor {
 public:
@@ -51,7 +54,7 @@ public:
   }
 
   void setPWM(uint16_t pwm) {    
-    if (mode != MOTOR_INIT_FINE0 && mode != MOTOR_INIT_FINE2 && !digitalRead(pinEndStop)) { 
+    if (checkEndStop && !digitalRead(pinEndStop)) { 
       return;
     }
     analogWrite(pinPWM, pwm);
@@ -63,18 +66,20 @@ public:
     initFinePWM = finePWM;
     initFineTime = fineTime;
     mode = MOTOR_INIT;
+    checkEndStop = false;
     done = false;
   }
 
-  int16_t angleToCount(int16_t angle) { return 6 * angle * (8.89); }
+  int16_t angleToCount(int16_t angle) { return angle * ANGLE_COUNT_FACTOR; } // 3200 counts per rev
 
-  void goToAngle(int16_t angle, int16_t PWMMax, int16_t PWMMin) {
+  void goToAngle(int16_t angle, int16_t PWMMax, int16_t PWMMin, bool endStop = true) {
     Serial.print("Angle = ");
     Serial.print(angle);
     Serial.print(" Count = ");
     Serial.println(angleToCount(angle));
     pid.reset(angleToCount(angle), PWMMax, PWMMin); //CCCW  90deg   3200=360  1600=180  800=90
     mode = MOTOR_TO_ANG;
+    checkEndStop = endStop;
     done = false;
   }
 
@@ -86,7 +91,7 @@ public:
           mode = MOTOR_INIT_FINE0;
           initFineTimer.reset(initFineTime);
           break;
-        }
+        }        
         currentPWM = initPWM;
         currentDir = initDir;
         break;
@@ -104,23 +109,12 @@ public:
       case MOTOR_INIT_FINE1: {
         if (!digitalRead(pinEndStop)) {
           stop();
-          mode = MOTOR_INIT_FINE2;
-          initFineTimer.reset(120);
+          mode = MOTOR_NONE;
+          done = true;
           break;
         }
         currentPWM = initFinePWM;
         currentDir = initDir;
-        break;
-      }
-      case MOTOR_INIT_FINE2: {
-        if (initFineTimer) {
-          stop();
-          done = true;          
-          mode = MOTOR_NONE;
-          break;
-        }
-        currentPWM = initFinePWM;
-        currentDir = 1 - initDir;
         break;
       }
       case MOTOR_RESET_COUNT: {
@@ -141,12 +135,6 @@ public:
         if (abs(diff) < 10) {
           off();
           done = true;
-        } else {
-        Serial.print("counter = ");
-        Serial.print(counter);
-        Serial.print(" Target = ");
-        Serial.println(pid.getTarget());
-          
         }
         break; 
       }
@@ -196,6 +184,7 @@ private:
   int mode = 0;
   uint16_t currentPWM = 0;
   int8_t currentDir = MOTOR_CCW;
+  bool checkEndStop = true;
   
 
   // initMode

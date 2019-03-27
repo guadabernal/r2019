@@ -5,6 +5,7 @@
 LEDStrip::LEDStrip strip[2];
 
 void setup() {
+  pinMode(LED_BUILTIN, OUTPUT);
     Serial.begin(9600); // Debug serial port
     Serial1.begin(115200); // TMain communication
     strip[0].setPins(GLED0, RLED0, BLED0, ALED0);
@@ -29,8 +30,13 @@ void setup() {
 #define CMD_LED_OFFMODE         16
 #define CMD_BATTERY_CAPACITY    50
 
-
+Timer TLed(2000);
+uint8_t TLedStatus = HIGH;
 void loop() {
+  if (TLed) { 
+    digitalWrite(LED_BUILTIN, TLedStatus); 
+    TLedStatus = !TLedStatus;
+  }
     if(Serial1.available() > 0){
         uint8_t cmd;
         Serial1Read<uint8_t>(&cmd);

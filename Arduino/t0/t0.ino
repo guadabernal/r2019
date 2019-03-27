@@ -40,92 +40,100 @@ void setup() {
 
     UIInitialize();
     
-    delay(1000);
+    delay(500);
     t0comm.ledOn(0);
     t0comm.ledRGBA(0, 30, 150, 240, 0);
-    delay(1000);
+    delay(500);
     t0comm.ledOff(0);
     DebugSerial.print("setup done");
 
 }
 
 Timer TLed(2000);
+Timer TM(2000);
 Timer TStrip(2000);
-PID<int32_t, float> pid(1600, 0.5, 0.002, 0.09, 1022, -1022);
 
-template <typename T> int sgn(T val) {
-    return (T(0) < val) - (val < T(0));
-}
 
 int TLedStatus = HIGH;
 long t0 = 0;
 bool notset = true;
 float w0 = 0;
 long tinit=0;
+bool motorTest = false;
+
 void loop() {
-  
- // DebugSerial.print("BL Counter = ");
- //DebugSerial.println(BL.counter); 
+  if (TLed) { 
+    digitalWrite(LED_BUILTIN, TLedStatus); 
+    TLedStatus = !TLedStatus;
+  }
+  if (TM && !motorTest) {
+    BL.goToAngle(-3600, 100, -100);
+    motorTest = true;
+  }
+  BL.update();
+  Serial.println(BL.counter);
+//  // DebugSerial.print("BL Counter = ");
+//  //DebugSerial.println(BL.counter); 
 
-  if (robotEnable) {
-  	if (TLed) { 
-  		digitalWrite(LED_BUILTIN, TLedStatus); 
-  		TLedStatus = !TLedStatus;
-   	}
-//    if (TStrip) {
-//      t0comm.ledOn(0);
-//      t0comm.ledJumpMode(0, random(0, 4), 300);
-//    }
-    if (notset) { 
-      t0 = micros();
-      notset = false;
-      tinit= micros();
-    }
-    long t1 = micros() - t0;
-    if (t1 < 1500000) {
+//   if (robotEnable) {
+//   	if (TLed) { 
+//   		digitalWrite(LED_BUILTIN, TLedStatus); 
+//   		TLedStatus = !TLedStatus;
+//    	}
+// //    if (TStrip) {
+// //      t0comm.ledOn(0);
+// //      t0comm.ledJumpMode(0, random(0, 4), 300);
+// //    }
+//     if (notset) { 
+//       t0 = micros();
+//       notset = false;
+//       tinit= micros();
+//     }
+//     long t1 = micros() - t0;
+//     if (t1 < 1500000) {
 
-      float pw = pid.compute(BL.counter);
-      if (pw < 0)
-        BL.dir(1); // right negative
-      else
-        BL.dir(0); // left positive
+//       float pw = pid.compute(BL.counter);
+//       if (pw < 0)
+//         BL.dir(1); // right negative
+//       else
+//         BL.dir(0); // left positive
 
         
-      float dw = pw - w0;
-//      Serial.print("w0 = ");
-//      Serial.print(w0);     
-//      Serial.print("  Pw = ");
-//      Serial.print(pw);     
-//      Serial.print("  dw = ");
-//      Serial.print(dw);     
-      //if (abs(dw) > 15) pw = w0 + 15 * sgn(dw);
-//      Serial.print("  PwF = ");
-//      Serial.print(pw);           
-//      Serial.print(" counter = ");
+//       float dw = pw - w0;
+// //      Serial.print("w0 = ");
+// //      Serial.print(w0);     
+// //      Serial.print("  Pw = ");
+// //      Serial.print(pw);     
+// //      Serial.print("  dw = ");
+// //      Serial.print(dw);     
+//       //if (abs(dw) > 15) pw = w0 + 15 * sgn(dw);
+// //      Serial.print("  PwF = ");
+// //      Serial.print(pw);           
+// //      Serial.print(" counter = ");
       
-      Serial.print(long((micros() - tinit) / 1E3));
-      Serial.print(" ");
-      Serial.print(pid.getTarget());
-      Serial.print(" ");
-      Serial.println(BL.counter);
-      w0 = pw;
-      BL.speed(abs(pw));
-    }
-    else {
-      BL.stop();
-      if (pid.getTarget() == 0) pid.reset(1600); 
-      else if(pid.getTarget() == 1600) pid.reset(0);
-      delay(1000);
-      t0 = micros();
-    }
+//       Serial.print(long((micros() - tinit) / 1E3));
+//       Serial.print(" ");
+//       Serial.print(pid.getTarget());
+//       Serial.print(" ");
+//       Serial.println(BL.counter);
+//       w0 = pw;
+//       BL.speed(abs(pw));
+//     }
+//     else {
+//       BL.stop();
+//       if (pid.getTarget() == 0) pid.reset(1600); 
+//       else if(pid.getTarget() == 1600) pid.reset(0);
+//       delay(1000);
+//       t0 = micros();
+//     }
 
-    delay(5);
-  }
-  else {
-    BL.off();
+//     delay(5);
+//   }
+//   else {
+//     BL.off();
 
-    t0comm.ledOff(0);
- 	  delay(10);
-  }
-  nexLoop(nex_listen_list);
+//     t0comm.ledOff(0);
+//  	  delay(10);
+//   }
+//   nexLoop(nex_listen_list);
 }
