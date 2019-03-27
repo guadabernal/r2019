@@ -2,8 +2,6 @@
 #include <Arduino.h>
 #include "utility.h"
 
-namespace T0COMM {
-  
 // T2 Commands
 #define CMD_LED_OFF              1 
 #define CMD_LED_ON               2
@@ -22,9 +20,21 @@ namespace T0COMM {
 #define CMD_LED_FADECURRENTMODE 15
 #define CMD_BATTERY_CAPACITY    50
 
-#define DebugSerial             Serial
+// T1 Commands
+#define CMD_ROT_RESET_POS        1 
+#define CMD_ROT_DIR_ANGL         2
+#define CMD_ROT_ROTATE           3
+
+
+// Controller Commands
+#define CMD_CONT_READ           1
+
+#define Debug                   Serial
+#define LPSerial                Serial1
 #define T2Serial                Serial2
-#define DisplaySerial           Serial3
+#define T1Serial                Serial4
+#define DisplaySerial           Serial3 // hardcoded in nextion library, because they are lazy
+#define CSerial                 Serial6
 
 
 class T0COMM {
@@ -32,11 +42,12 @@ public:
     T0COMM() {}
 
     void initialize(){
-        DebugSerial.begin(9600);
+        Debug.begin(9600);
         T2Serial.begin(115200);
         DisplaySerial.begin(115200);
     }
 
+    // T2 Commands
     void ledOn(uint8_t strip){
         uint8_t send[2] = { CMD_LED_ON, strip };
         SerialWrite<uint8_t>(T2Serial, send, 2);
@@ -57,12 +68,30 @@ public:
         uint8_t send[6]  = { CMD_LED_RGBA, strip, r, g, b, a };
         SerialWrite<uint8_t>(T2Serial, send, 6);
     }
-    // set the other led modes
+    //
+    // set the other led modes and battery levels
+    // ....
 
+    // T1 Commands
+    void rotResetPos() {
+        uint8_t cmd = CMD_ROT_RESET_POS;
+        SerialWrite<uint8_t>(T1Serial, &cmd);
+        SerialReadOK(T1Serial); // blocking
+    }
+    //
+    // set the other led modes and battery levels
+    // ....
+
+    // Controller commands
+    void readControllerStatus() {
+        uint8_t cmd = CMD_CONT_READ;
+        SerialWrite<uint8_t>(T1Serial, &cmd);
+        SerialRead<ControllerData>(T1Serial, &controllerStatus);
+    }
+
+    ControllerData controllerStatus;  
 protected:
             
 private:
   
 };
-
-}

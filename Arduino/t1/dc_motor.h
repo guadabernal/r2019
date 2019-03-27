@@ -53,8 +53,12 @@ public:
     analogWrite(pinPWM, currentPWM);     
   }
 
+  void endStopPressed() {
+    return !digitalRead(pinEndStop);
+  }
+
   void setPWM(uint16_t pwm) {    
-    if (checkEndStop && !digitalRead(pinEndStop)) { 
+    if (checkEndStop && endStopPressed()) { 
       return;
     }
     analogWrite(pinPWM, pwm);
@@ -86,7 +90,7 @@ public:
   void update() {
     switch (mode) {
       case MOTOR_INIT: {    
-        if (!digitalRead(pinEndStop)) {
+        if (endStopPressed()) {
           stop();
           mode = MOTOR_INIT_FINE0;
           initFineTimer.reset(initFineTime);
@@ -107,7 +111,7 @@ public:
         break;
       }
       case MOTOR_INIT_FINE1: {
-        if (!digitalRead(pinEndStop)) {
+        if (endStopPressed()) {
           stop();
           mode = MOTOR_NONE;
           done = true;
