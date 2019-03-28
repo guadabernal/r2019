@@ -1,6 +1,8 @@
 #pragma once
 #include <Arduino.h>
 
+#define MSG_OK 1
+
 template<typename T>
 void SerialRead(HardwareSerial &S, T* p, uint16_t count = 1) {
     while(S.available() < count * sizeof(T)) delay(1);
@@ -10,6 +12,18 @@ void SerialRead(HardwareSerial &S, T* p, uint16_t count = 1) {
 template<typename T>
 void SerialWrite(HardwareSerial &S, T* p, uint16_t count = 1) {
     S.write((uint8_t*) p, count * sizeof(T));
+}
+
+void SerialWriteOK(HardwareSerial &S) {
+    uint8_t p = MSG_OK;
+    S.write((uint8_t*) &p, 1);
+}
+
+bool SerialReadOK(HardwareSerial &S) {
+    while (S.available() < 1)  delay(1);
+    uint8_t p = 0;
+    S.write((uint8_t*) &p, 1);
+    return (p == MSG_OK);
 }
 
 template<typename T>

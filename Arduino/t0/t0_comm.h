@@ -1,6 +1,7 @@
 #pragma once
 #include <Arduino.h>
 #include "utility.h"
+#include "controller.h"
 
 // T2 Commands
 #define CMD_LED_OFF              1 
@@ -18,24 +19,23 @@
 #define CMD_LED_SMOOTHMODE      13
 #define CMD_LED_FADEMODE        14
 #define CMD_LED_FADECURRENTMODE 15
-#define CMD_BATTERY_CAPACITY    50
+#define CMD_BATTERY_CAPACITY    16
 
 // T1 Commands
-#define CMD_ROT_RESET_POS        1 
-#define CMD_ROT_DIR_ANGL         2
-#define CMD_ROT_ROTATE           3
+#define CMD_ROT_RESET_POS       30 
+#define CMD_ROT_DIR_ANGLE       31
+#define CMD_ROT_ROTATE          32
 
 
 // Controller Commands
-#define CMD_CONT_READ           1
+#define CMD_CONT_READ           40
 
 #define Debug                   Serial
-#define LPSerial                Serial1
+#define LPSerial                Serial4
 #define T2Serial                Serial2
-#define T1Serial                Serial4
+#define T1Serial                Serial1
 #define DisplaySerial           Serial3 // hardcoded in nextion library, because they are lazy
-#define CSerial                 Serial6
-
+#define CSerial                 Serial6 // green RX blue TX at t0
 
 class T0COMM {
 public:
@@ -43,8 +43,10 @@ public:
 
     void initialize(){
         Debug.begin(9600);
+        T1Serial.begin(115200);
         T2Serial.begin(115200);
         DisplaySerial.begin(115200);
+        CSerial.begin(115200);
     }
 
     // T2 Commands
@@ -78,6 +80,16 @@ public:
         SerialWrite<uint8_t>(T1Serial, &cmd);
         SerialReadOK(T1Serial); // blocking
     }
+    void rotRotate() {
+        uint8_t cmd = CMD_ROT_ROTATE;
+        SerialWrite<uint8_t>(T1Serial, &cmd);
+        SerialReadOK(T1Serial); // blocking
+    }
+    void rotDirAngle(float angle) {
+        uint8_t cmd = CMD_ROT_DIR_ANGLE;
+        SerialWrite<uint8_t>(T1Serial, &cmd);
+        SerialWrite<float>(T1Serial, &angle);
+    }
     //
     // set the other led modes and battery levels
     // ....
@@ -85,8 +97,8 @@ public:
     // Controller commands
     void readControllerStatus() {
         uint8_t cmd = CMD_CONT_READ;
-        SerialWrite<uint8_t>(T1Serial, &cmd);
-        SerialRead<ControllerData>(T1Serial, &controllerStatus);
+        SerialWrite<uint8_t>(CSerial, &cmd);
+        SerialRead<ControllerData>(CSerial, &controllerStatus);
     }
 
     ControllerData controllerStatus;  

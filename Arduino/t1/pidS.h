@@ -17,6 +17,12 @@ public:
         iErr = 0;
         err0 = 0;
     }
+
+    void reset(T tgt) {
+        target = tgt;
+        iErr = 0;
+        err0 = 0;      
+    }
   
     K compute(T input) {
         t1 = micros();
@@ -34,7 +40,6 @@ public:
     }
   
     T getTarget() { return target; }
-
 private:
     T target;
     K Kp; // proportional

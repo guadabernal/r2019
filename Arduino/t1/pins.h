@@ -40,6 +40,3 @@
 // I2C Pins
 #define I2C_SLC SLC0
 #define I2C_SDA SDA0
-
-// Sonar Serial
-#define SonarSerial Serial4

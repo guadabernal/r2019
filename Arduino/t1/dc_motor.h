@@ -53,7 +53,7 @@ public:
     analogWrite(pinPWM, currentPWM);     
   }
 
-  void endStopPressed() {
+  bool endStopPressed() {
     return !digitalRead(pinEndStop);
   }
 
@@ -154,7 +154,10 @@ public:
   bool pinBStatus = false;  
   int counter;  
 
-  void resetCounter() { counter = 0; }
+  void resetCounter() { 
+    counter = 0; 
+    pid.reset(counter);
+  }
   
   void updateA() {
     int vB = digitalRead(pinB);
@@ -185,7 +188,7 @@ private:
   int pinCS;
   int pinEndStop;
 
-  int mode = 0;
+  int mode = MOTOR_NONE;
   uint16_t currentPWM = 0;
   int8_t currentDir = MOTOR_CCW;
   bool checkEndStop = true;

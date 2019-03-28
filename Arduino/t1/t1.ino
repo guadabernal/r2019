@@ -2,12 +2,15 @@
 #include "pins.h"
 #include "rmotors.h"
 
-#define T0Serial Serial1
-#define Debug    Serial
+#define CMD_ROT_RESET_POS       30 
+#define CMD_ROT_DIR_ANGLE       31
+#define CMD_ROT_ROTATE          32
 
-#define CMD_ROT_RESET_POS            1 
-#define CMD_ROT_DIR_ANGLE            2
-#define CMD_ROT_ROTATE               3
+
+// Serial ports
+#define SonarSerial Serial4
+#define T0Serial    Serial1
+#define Debug       Serial
 
 RMotors motors;
 
@@ -25,8 +28,7 @@ void setup() {
     Debug.begin(9600); // Debug serial port
     T0Serial.begin(115200); // TMain communication
 
-    pinMode(LED_BUILTIN, OUTPUT);
-    setupMotors();
+    motors.setup();
     attachInterrupt(digitalPinToInterrupt(motors.getPinA(RMotors::FR)), updateARFR, CHANGE);
     attachInterrupt(digitalPinToInterrupt(motors.getPinB(RMotors::FR)), updateBRFR, CHANGE);
     attachInterrupt(digitalPinToInterrupt(motors.getPinA(RMotors::FL)), updateARFL, CHANGE);
@@ -36,22 +38,21 @@ void setup() {
     attachInterrupt(digitalPinToInterrupt(motors.getPinA(RMotors::BL)), updateARBL, CHANGE);
     attachInterrupt(digitalPinToInterrupt(motors.getPinB(RMotors::BL)), updateBRBL, CHANGE);
 
-    motors.resetPosition();
+  //  motors.resetPosition();
 }
 
-Timer TLed(2000);
-uint8_t TLedStatus = HIGH;
-
 void loop() {
-  if (TLed) { 
-		digitalWrite(LED_BUILTIN, TLedStatus); 
-		TLedStatus = !TLedStatus;
- 	}
   if(T0Serial.available() > 0) {
+    
     uint8_t cmd;
     SerialRead<uint8_t>(T0Serial, &cmd);
+    Debug.println("Received Command");
+    Debug.print("CMD = ");
+    Debug.print(cmd);
+    Debug.println("----------");
     switch (cmd) {
       case CMD_ROT_RESET_POS: {
+        Debug.println("Received resetPos");
         motors.resetPosition(); // blocking here, T0 should wait untill we're done
         SerialWriteOK(T0Serial);
         break;
@@ -69,7 +70,7 @@ void loop() {
       }
     }
   }
-
+   //Debug.println("update");
   motors.update();
 
   delay(1);

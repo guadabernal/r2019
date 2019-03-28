@@ -45,8 +45,8 @@ void setup() {
     comms.ledRGBA(0, 30, 150, 240, 0);
     delay(500);
     comms.ledOff(0);
-    DebugSerial.print("setup done");
-
+    Debug.println("setup done");
+    delay(2000);
 }
 
 Timer TLed(2000);
@@ -54,15 +54,38 @@ int TLedStatus = HIGH;
 
 Timer TController(30);
 
+Timer TT1(2000);
+int t1done = false;
+
 void loop() {
   if (TLed) { 
     digitalWrite(LED_BUILTIN, TLedStatus); 
     TLedStatus = !TLedStatus;
   }
+  if (TT1 && !t1done) {
+    Debug.println("sending reset pos");
+    t1done = true;
+    //comms.rotResetPos(); // blocking
+  }
   if (TController) {
     comms.readControllerStatus(); // blocking
-    if (comms.controllerStatus.triangle) {
-      comms.rotResetPos(); // blocking
+    if (comms.controllerStatus.connected) {
+      Debug.print("Connected = ");
+      Debug.print(comms.controllerStatus.connected);
+      Debug.print("Triangle = ");
+      Debug.println(comms.controllerStatus.triangle);
+      if (comms.controllerStatus.triangle) {
+        comms.rotResetPos(); // blocking
+        Debug.println("sending reset pos");
+      }
+      if (comms.controllerStatus.circle) {
+        comms.rotRotate(); // blocking
+        Debug.println("sending reset pos");
+      }
+      if (comms.controllerStatus.cross) {
+        comms.rotDirAngle(30); // blocking
+        Debug.println("sending reset pos");
+      }
     }
   }
 

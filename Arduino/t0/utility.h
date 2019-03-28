@@ -20,9 +20,8 @@ void SerialWriteOK(HardwareSerial &S) {
 }
 
 bool SerialReadOK(HardwareSerial &S) {
-    while (T1Serial.available() < 1)  delay(1);
-    uint8_t p = 0;
-    S.write((uint8_t*) &p, 1);
+    uint8_t p = 0;  
+    SerialRead<uint8_t>(S, &p);
     return (p == MSG_OK);
 }
 

@@ -6,19 +6,19 @@
 
 class RMotors {
 public:
-  enum MType { FR, FL, BR, BL}
+  enum MType { FR, FL, BR, BL};
   RMotors()
-  : m{ (AERFR, BERFR, PWMRFR, INARFR, INBRFR, CSRFR, SIGFR)
-     , (AERFL, BERFL, PWMRFL, INARFL, INBRFL, CSRFL, SIGFL)
-     , (AERBR, BERBR, PWMRBR, INARBR, INBRBR, CSRBR, SIGBR)
-     , (AERBL, BERBL, PWMRBL, INARBL, INBRBL, CSRBL, SIGBL) }
+  : m{ {AERFR, BERFR, PWMRFR, INARFR, INBRFR, CSRFR, SIGFR}
+     , {AERFL, BERFL, PWMRFL, INARFL, INBRFL, CSRFL, SIGFL}
+     , {AERBR, BERBR, PWMRBR, INARBR, INBRBR, CSRBR, SIGBR}
+     , {AERBL, BERBL, PWMRBL, INARBL, INBRBL, CSRBL, SIGBL} }
   {}
 
   void updateA(uint8_t motorId) {
     m[motorId].updateA();
   }
   
-  void updateB(uint8_t motor) {
+  void updateB(uint8_t motorId) {
     m[motorId].updateB();
   }
 
@@ -26,7 +26,7 @@ public:
     return m[motorId].getPinA();
   }
   
-  int updateB(uint8_t motor) {
+  int getPinB(uint8_t motorId) {
     return m[motorId].getPinB();
   }
 
@@ -64,7 +64,7 @@ public:
 
   void waitForAll(int updateTime = 1) {
       while(!allDone()) {
-        updateMotors();
+        update();
         delay(updateTime);
       }  
   }
@@ -75,6 +75,7 @@ public:
     waitForAll(1);
     delay(500);
     resetCounters();
+
     // setInitial 90 degress angle
     m[BL].goToAngle(8, 40,-40, false);
     m[BR].goToAngle(-10, 40,-40, false); 
@@ -85,31 +86,34 @@ public:
     resetCounters();
 
     // setInitial 0 degress angle
-    m[BL].goToAngle(90, 60,-60);  // -90,  50
-    m[BR].goToAngle(-90, 60,-60); //  90, -50
-    m[FL].goToAngle(-90, 60,-60); //  90, -50
-    m[FR].goToAngle(90, 60,-60);  // -90,  50  
-    waitForMotors(1);
+    m[BL].goToAngle(90, 80,-80);  // -90,  50
+    m[BR].goToAngle(-90, 80,-80); //  90, -50
+    m[FL].goToAngle(-90, 80,-80); //  90, -50
+    m[FR].goToAngle(90, 80,-80);  // -90,  50  
+    waitForAll(1);
     delay(500);
+    off();
     resetCounters();
+    for (int i = 0; i < 4; ++i)
+       Serial.println(m[i].counter);
   }
 
-  void ratePos() {
+  void rotatePos() {
     float rotAngle = 50;
-    m[FR].goToAngle(-rotAngle, 60,-60);  // -90,  50     
-    m[FL].goToAngle(rotAngle, 60,-60); //  90, -50
-    m[BR].goToAngle(rotAngle, 60,-60); //  90, -50
-    m[BL].goToAngle(-rotAngle, 60,-60);  // -90,  50
-    waitForMotors(1);
+    m[FR].goToAngle(-rotAngle, 80,-80);  // -90,  50     
+    m[FL].goToAngle(rotAngle, 80,-80); //  90, -50
+    m[BR].goToAngle(rotAngle, 80,-80); //  90, -50
+    m[BL].goToAngle(-rotAngle, 80,-80);  // -90,  50
+    waitForAll(1);
     delay(500);    
   }
 
   void angleDir(float angle) {
     if (abs(angle) > 50) return;
-    m[FR].goToAngle(angle, 60,-60);  // -90,  50      
-    m[FL].goToAngle(angle, 60,-60); //  90, -50
-    m[BR].goToAngle(angle, 60,-60); //  90, -50
-    m[BL].goToAngle(angle, 60,-60);  // -90,  50
+    m[FR].goToAngle(angle, 80,-80);  // -90,  50      
+    m[FL].goToAngle(angle, 80,-80); //  90, -50
+    m[BR].goToAngle(-angle, 80,-80); //  90, -50
+    m[BL].goToAngle(-angle, 80,-80);  // -90,  50
   }
 
 private:

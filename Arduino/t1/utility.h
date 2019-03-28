@@ -20,8 +20,8 @@ void SerialWriteOK(HardwareSerial &S) {
 }
 
 bool SerialReadOK(HardwareSerial &S) {
-    uint8_t p = 0;
-    S.write((uint8_t*) &p, 1);
+    uint8_t p = 0;  
+    SerialRead<uint8_t>(S, &p);
     return (p == MSG_OK);
 }
 
