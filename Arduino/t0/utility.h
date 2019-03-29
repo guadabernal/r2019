@@ -31,6 +31,12 @@ T clip(T v, T vmin, T vmax)
     return v < vmin ? vmin : v > vmax ? vmax : v;
 }
 
+template<typename T>
+T sgn(T v)
+{
+  return v > T(0) ? T(1) : T(-1);
+}
+
 class Timer {
 public:
     Timer(int time = 0, bool resetWhenDone = true) : t0(millis()), t1(t0), time(time), resetWhenDone(resetWhenDone) {}

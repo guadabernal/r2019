@@ -5,6 +5,7 @@
 #define CMD_ROT_RESET_POS       30 
 #define CMD_ROT_DIR_ANGLE       31
 #define CMD_ROT_ROTATE          32
+#define CMD_ROT_DIR_DANGLE      33
 
 
 // Serial ports
@@ -46,10 +47,6 @@ void loop() {
     
     uint8_t cmd;
     SerialRead<uint8_t>(T0Serial, &cmd);
-    Debug.println("Received Command");
-    Debug.print("CMD = ");
-    Debug.print(cmd);
-    Debug.println("----------");
     switch (cmd) {
       case CMD_ROT_RESET_POS: {
         Debug.println("Received resetPos");
@@ -63,6 +60,13 @@ void loop() {
         motors.angleDir(angle);
         break;
       }
+      case CMD_ROT_DIR_DANGLE: {
+        float dangle;
+        SerialRead<float>(T0Serial, &dangle);
+        motors.deltaAngleDir(dangle);
+        break;
+      }
+
       case CMD_ROT_ROTATE: {
         motors.rotatePos(); // blocking here, T0 should wait untill we're done
         SerialWriteOK(T0Serial);

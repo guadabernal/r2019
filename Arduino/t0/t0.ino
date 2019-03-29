@@ -28,6 +28,9 @@ void setup() {
 
     comms.initialize();
     BL.setupMotor();
+    BR.setupMotor();
+    FR.setupMotor();
+    FL.setupMotor();
     
     attachInterrupt(digitalPinToInterrupt(FR.getPinA()), updateAFR, CHANGE);
     attachInterrupt(digitalPinToInterrupt(FR.getPinB()), updateBFR, CHANGE);
@@ -52,7 +55,7 @@ void setup() {
 Timer TLed(2000);
 int TLedStatus = HIGH;
 
-Timer TController(30);
+Timer TController(10);
 
 Timer TT1(2000);
 int t1done = false;
@@ -60,7 +63,7 @@ int t1done = false;
 void loop() {
   if (TLed) { 
     digitalWrite(LED_BUILTIN, TLedStatus); 
-    TLedStatus = !TLedStatus;
+    TLedStatus = !TLedStatus;  
   }
   if (TT1 && !t1done) {
     Debug.println("sending reset pos");
@@ -70,10 +73,6 @@ void loop() {
   if (TController) {
     comms.readControllerStatus(); // blocking
     if (comms.controllerStatus.connected) {
-      Debug.print("Connected = ");
-      Debug.print(comms.controllerStatus.connected);
-      Debug.print("Triangle = ");
-      Debug.println(comms.controllerStatus.triangle);
       if (comms.controllerStatus.triangle) {
         comms.rotResetPos(); // blocking
         Debug.println("sending reset pos");
@@ -83,9 +82,30 @@ void loop() {
         Debug.println("sending reset pos");
       }
       if (comms.controllerStatus.cross) {
-        comms.rotDirAngle(30); // blocking
+        comms.rotDirAngle(0); // blocking
         Debug.println("sending reset pos");
       }
+      int leftHatX = int(comms.controllerStatus.leftHatX)- 127;
+      if (abs(leftHatX) < 9) leftHatX = 0;
+      if (abs(leftHatX) > 100) {
+        float dAngle = 3 * sgn(leftHatX);
+        Serial.println(dAngle);
+        comms.rotDirDAngle(dAngle);
+      }
+      int rightHatY = int(comms.controllerStatus.rightHatY) - 127;
+      if (abs(rightHatY) < 9) rightHatY = 0;
+      int dir = 1;
+      float vel = abs(rightHatY) / 127.0f * 50;
+      Serial.println(vel);
+      if (rightHatY < 0) dir = 0;
+      BL.setDir(1 - dir);
+      BL.setPWM(vel);
+      FL.setDir(1 - dir);
+      FL.setPWM(vel);   
+      BR.setDir(dir);
+      BR.setPWM(vel);        
+      FR.setDir(dir);
+      FR.setPWM(vel);
     }
   }
 

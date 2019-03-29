@@ -25,6 +25,7 @@
 #define CMD_ROT_RESET_POS       30 
 #define CMD_ROT_DIR_ANGLE       31
 #define CMD_ROT_ROTATE          32
+#define CMD_ROT_DIR_DANGLE      33
 
 
 // Controller Commands
@@ -89,6 +90,11 @@ public:
         uint8_t cmd = CMD_ROT_DIR_ANGLE;
         SerialWrite<uint8_t>(T1Serial, &cmd);
         SerialWrite<float>(T1Serial, &angle);
+    }
+    void rotDirDAngle(float dangle) {
+        uint8_t cmd = CMD_ROT_DIR_DANGLE;
+        SerialWrite<uint8_t>(T1Serial, &cmd);
+        SerialWrite<float>(T1Serial, &dangle);      
     }
     //
     // set the other led modes and battery levels

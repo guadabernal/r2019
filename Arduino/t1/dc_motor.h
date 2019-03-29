@@ -15,7 +15,8 @@
 
 #define MOTOR_CPR           3200
 #define GEAR_FACTOR         6
-#define ANGLE_COUNT_FACTOR  GEAR_FACTOR * MOTOR_CPR / 360.0
+#define ANGLE_COUNT_FACTOR  (GEAR_FACTOR * MOTOR_CPR) / 360.0
+#define COUNT_ANGLE_FACTOR  360.0 / (GEAR_FACTOR * MOTOR_CPR)
 
 class Motor {
 public:
@@ -74,17 +75,27 @@ public:
     done = false;
   }
 
-  int16_t angleToCount(int16_t angle) { return angle * ANGLE_COUNT_FACTOR; } // 3200 counts per rev
+  int16_t angleToCount(float angle) { 
+    return angle * ANGLE_COUNT_FACTOR;  // 3200 counts per rev
+  }
 
-  void goToAngle(int16_t angle, int16_t PWMMax, int16_t PWMMin, bool endStop = true) {
-    Serial.print("Angle = ");
-    Serial.print(angle);
-    Serial.print(" Count = ");
-    Serial.println(angleToCount(angle));
+  float countToAngle(int16_t count) {
+    return count * COUNT_ANGLE_FACTOR;
+  }
+
+  void goToAngle(float angle, int16_t PWMMax, int16_t PWMMin, bool endStop = true) {
     pid.reset(angleToCount(angle), PWMMax, PWMMin); //CCCW  90deg   3200=360  1600=180  800=90
     mode = MOTOR_TO_ANG;
     checkEndStop = endStop;
     done = false;
+  }
+
+  void goToDeltaAngle(float dAngle, int16_t PWMMax, int16_t PWMMin, bool endStop = true) {
+    float angle = getAngle() + dAngle;
+    Serial.println(angle);
+    if (angle > maxAngle) angle = maxAngle;
+    if (angle < minAngle) angle = minAngle;    
+    goToAngle(angle, PWMMax, PWMMin, endStop);
   }
 
   void update() {
@@ -178,6 +189,14 @@ public:
   bool isDone() { return done; }
   int getPinA() { return pinA; }
   int getPinB() { return pinB; }
+  float getAngle() { return countToAngle(counter); }
+  bool isValidAngle(float angle) {
+    return angle >= minAngle && angle <= maxAngle;
+  }
+  void setMaxMinAngles(float maxA, float minA) {
+    maxAngle = maxA > minA ? maxA : minA;
+    minAngle = minA < maxA ? minA : maxA;
+  }
 
 private: 
   int pinA;
@@ -202,6 +221,10 @@ private:
   Timer initFineTimer;
   float initAngle;
   bool done = false;
+
+  // max min angles
+  float maxAngle = 0;
+  float minAngle = 0;
 
   //PID Controller
   PID<int16_t, float> pid;

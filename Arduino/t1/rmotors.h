@@ -94,8 +94,7 @@ public:
     delay(500);
     off();
     resetCounters();
-    for (int i = 0; i < 4; ++i)
-       Serial.println(m[i].counter);
+    setMaxMinAngles();
   }
 
   void rotatePos() {
@@ -114,6 +113,23 @@ public:
     m[FL].goToAngle(angle, 80,-80); //  90, -50
     m[BR].goToAngle(-angle, 80,-80); //  90, -50
     m[BL].goToAngle(-angle, 80,-80);  // -90,  50
+  }
+
+  void deltaAngleDir(float dAngle) {
+    for (int i = 0; i < 4; ++i) {
+      if (!m[i].isValidAngle(m[i].getAngle() + dAngle)) return;
+    }
+    m[FR].goToDeltaAngle(dAngle, 80,-80);  // -90,  50      
+    m[FL].goToDeltaAngle(dAngle, 80,-80); //  90, -50
+    m[BR].goToDeltaAngle(-dAngle, 80,-80); //  90, -50
+    m[BL].goToDeltaAngle(-dAngle, 80,-80);  // -90,  50    
+  }
+
+  void setMaxMinAngles() {
+    m[FR].setMaxMinAngles(-90, 50);
+    m[FL].setMaxMinAngles(90, -50);
+    m[BR].setMaxMinAngles(90, -50);
+    m[BL].setMaxMinAngles(-90, 50);
   }
 
 private:

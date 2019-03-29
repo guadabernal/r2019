@@ -29,9 +29,9 @@ struct ControllerData {
     connected = PS4.connected();
     if (PS4.connected()) {
     	leftHatX = PS4.getAnalogHat(LeftHatX);
-    	leftHatY = PS4.getAnalogHat(LeftHatX);
-    	rightHatX = PS4.getAnalogHat(LeftHatX);
-    	rightHatY = PS4.getAnalogHat(LeftHatX);
+    	leftHatY = PS4.getAnalogHat(LeftHatY);
+    	rightHatX = PS4.getAnalogHat(RightHatX);
+    	rightHatY = PS4.getAnalogHat(RightHatY);
     	batteryLevel = PS4.getBatteryLevel();
     	L2 = PS4.getAnalogButton(L2);
     	R2 = PS4.getAnalogButton(R2);
