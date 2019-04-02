@@ -98,7 +98,7 @@ public:
   }
 
   void rotatePos() {
-    float rotAngle = 50;
+    float rotAngle = 50; // fix this angle
     m[FR].goToAngle(-rotAngle, 80,-80);  // -90,  50     
     m[FL].goToAngle(rotAngle, 80,-80); //  90, -50
     m[BR].goToAngle(rotAngle, 80,-80); //  90, -50
@@ -107,12 +107,11 @@ public:
     delay(500);    
   }
 
-  void angleDir(float angle) {
-    if (abs(angle) > 50) return;
-    m[FR].goToAngle(angle, 80,-80);  // -90,  50      
-    m[FL].goToAngle(angle, 80,-80); //  90, -50
-    m[BR].goToAngle(-angle, 80,-80); //  90, -50
-    m[BL].goToAngle(-angle, 80,-80);  // -90,  50
+  void angleDir(float aL, float aR) {
+    m[FR].goToAngle(aR, 80,-80);  // -90,  50      
+    m[FL].goToAngle(aL, 80,-80); //  90, -50
+    m[BR].goToAngle(-aR, 80,-80); //  90, -50
+    m[BL].goToAngle(-aL, 80,-80);  // -90,  50
   }
 
   void deltaAngleDir(float dAngle) {
@@ -131,6 +130,7 @@ public:
     m[BR].setMaxMinAngles(90, -50);
     m[BL].setMaxMinAngles(-90, 50);
   }
+
 
 private:
   Motor m[4];  

@@ -61,9 +61,24 @@ public:
       }  
   }
 
-  void goToSpeed(int motorId, float speed) {
-  	m[motorId].goToSpeed(speed);
+  void goToSpeed(int motorId, float v) {
+  	m[motorId].goToSpeed(v);
   }
+
+  void goToSpeed(float v) {
+    m[FR].goToSpeed(-v);
+    m[FL].goToSpeed(v);
+    m[BR].goToSpeed(-v);
+    m[BL].goToSpeed(v);
+  }
+
+  void goToSpeed(float vl, float vr) {
+    m[FR].goToSpeed(-vr);
+    m[FL].goToSpeed(vl);
+    m[BR].goToSpeed(-vr);
+    m[BL].goToSpeed(vl);
+  }
+
  private:
   Motor m[4];  
 };

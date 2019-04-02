@@ -8,9 +8,11 @@
 #define MOTOR_TO_COUNT    2
 #define MOTOR_TO_SPEED    3
 
+// CW < 0  CCW > 0
 #define MOTOR_CCW 0
 #define MOTOR_CW  1
 
+#define MOTOR_RPM_MAX       90
 #define MOTOR_CPR           1440
 #define GEAR_FACTOR         1
 #define PID_COUNT_MIN       7
@@ -61,11 +63,10 @@ public:
     mode = MOTOR_TO_SPEED;
     float ang_vel = rpm / 60; // rps
     dtPIDMin = PID_COUNT_MIN / float(MOTOR_CPR) / ang_vel; // s
-    pidV.reset(rpm, 1023,-1023);
+    if (abs(rpm) > MOTOR_RPM_MAX) rpm = MOTOR_RPM_MAX * sgn(rpm);
+    pidV.reset(rpm);
     t0 = micros();
     oldCounter = counter;
-    oldPWM = 0;
-    totalT = 0;
     delay(1);
     update();
   }
@@ -85,29 +86,14 @@ public:
       }
       case MOTOR_NONE: { break; }
       case MOTOR_TO_SPEED: {
-        t1 = micros();
-        float dt = t1 - t0;
+        float dt = micros() - t0;
         if(dt * 1E-6 < dtPIDMin) break;
-        totalT += dt * 1E-3;
-        if (totalT > 2000) {
-          currentPWM = 0;
-          break;
-        }
-        
-        float dCount = counter - oldCounter;
-        float currentV = dCount / dt * (1E6 * 60) / MOTOR_CPR;
+        float currentV = (counter - oldCounter) / dt * (1E6 * 60) / MOTOR_CPR;
         float pwm = pidV.compute(currentV);
-        Serial.print(totalT);
-        Serial.print(" ");        
-        Serial.print(currentV, 6);
-        Serial.print(" ");        
-        Serial.println(pwm, 6);
-
         currentDir = pwm < 0 ? MOTOR_CW : MOTOR_CCW;
         currentPWM = abs(pwm);
-        oldPWM = currentPWM;
         oldCounter = counter;
-        t0 = t1;        
+        t0 = micros();        
         break;
       }
       case MOTOR_TO_COUNT: {
@@ -162,14 +148,9 @@ private:
 
   bool done = false;
 
-  //PID Controller
+  //PID Speed Controller
   PID<float, float> pidV;
   float dtPIDMin = 0;
-
   long t0, t1;
   uint32_t oldCounter;
-  uint16_t oldPWM;
-  float totalT;
-
-
 };

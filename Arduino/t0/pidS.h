@@ -44,7 +44,6 @@ private:
     K Kp; // proportional
     K Ki; // integral
     K Kd; // derivative
-    float dtMin;
     K err = 0;
     K err0 = 0;
     K iErr = 0;

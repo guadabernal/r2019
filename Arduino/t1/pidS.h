@@ -10,7 +10,7 @@ public:
 
     PID(K Kp, K Ki, K Kd) : Kp(Kp), Ki(Ki), Kd(Kd) {}
 
-    void reset(T tgt, K inmaxOutput, K inminOutput) {
+    void reset(T tgt, K inmaxOutput = K(1023), K inminOutput = K(-1023)) {
         maxOutput = inmaxOutput;
         minOutput = inminOutput;
         target = tgt;
