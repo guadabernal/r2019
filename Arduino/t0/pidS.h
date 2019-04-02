@@ -16,16 +16,19 @@ public:
         target = tgt;
         iErr = 0;
         err0 = 0;
+        t0 = micros();
     }
   
     K compute(T input) {
         t1 = micros();
-        K dt = (t1 - t0) / 1E6;
+        K dt = (K(t1) - K(t0)) * 1E-6;
         t0 = t1;
         if (dt == 0) return 0;
 
-        err = target - input;
-        iErr += err * dt;
+        err = target - input;   
+        if (Ki != 0)
+          iErr += err * dt;
+
         dErr = (err - err0) / dt;
         err0 = err;
         K output = K(Kp * err + Ki * iErr + Kd * dErr);

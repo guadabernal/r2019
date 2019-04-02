@@ -6,6 +6,7 @@
 #define MOTOR_NONE        0
 #define MOTOR_RESET_COUNT 1 
 #define MOTOR_TO_COUNT    2
+#define MOTOR_TO_SPEED    3
 
 #define MOTOR_CCW 0
 #define MOTOR_CW  1
@@ -18,7 +19,7 @@ class Motor {
 public:
   Motor(int pinA, int pinB, int pinPWM, int pinEnaA, int pinEnaB, int pinCS)
   : pinA(pinA), pinB(pinB), pinPWM(pinPWM), pinEnaA(pinEnaA), pinEnaB(pinEnaB), pinCS(pinCS)
-  , pid(3, 0, 0.08)
+  , pidV(3.5, 40, 0)
   {}
 
   void setupMotor() {
@@ -53,17 +54,24 @@ public:
     analogWrite(pinPWM, pwm);
   }
 
-  int16_t angleToCount(int16_t angle) { return angle  * ANGLE_COUNT_FACTOR; }
+  //int32_t distanceToCount(float distance) { return distance  * DISTANCE_COUNT_FACTOR; }
 
-  void goToAngle(int16_t angle, int16_t PWMMax, int16_t PWMMin) {
-    Serial.print("Angle = ");
-    Serial.print(angle);
-    Serial.print(" Count = ");
-    Serial.println(angleToCount(angle));
-    pid.reset(angleToCount(angle), PWMMax, PWMMin); //CCCW  90deg   3200=360  1600=180  800=90
-    mode = MOTOR_TO_COUNT;
-    done = false;
+  void goToSpeed(float speed) {
+    mode = MOTOR_TO_SPEED;
+    pidV.reset(speed, 1023,-1023);
+    t0 = micros();
+    oldCounter = counter;
+    oldPWM = 0;
+    totalT = 0;
+    delay(1);
+    update();
   }
+
+  // void goToDistance(float distance, float speed) {
+  //   pid.reset(distanceToCount(distance), PWMMax, PWMMin);
+  //   mode = MOTOR_TO_COUNT;
+  //   done = false;
+  // }
 
   void update() {
     switch (mode) {
@@ -73,19 +81,32 @@ public:
         break;
       }
       case MOTOR_NONE: { break; }
-      case MOTOR_TO_COUNT: {
-        float pwm = pid.compute(counter);
-        if (pwm < 0)
-          currentDir = MOTOR_CW;
-        else
-          currentDir = MOTOR_CCW;
-        float diff = pid.getTarget() - counter;
-        currentPWM = abs(pwm);
-        if (currentPWM < 10) currentPWM = 0;
-        if (abs(diff) < 10) {
-          off();
-          done = true;
+      case MOTOR_TO_SPEED: {
+        t1 = micros();
+        float dt = t1 - t0;
+        totalT += dt * 1E-3;
+        if (totalT > 2000) {
+          currentPWM = 0;
+          break;
         }
+        
+        float dCount = counter - oldCounter;
+        float currentV = dCount / dt * (1E6 * 60) / MOTOR_CPR;
+        float pwm = pidV.compute(currentV);
+        Serial.print(totalT);
+        Serial.print(" ");        
+        Serial.print(currentV, 6);
+        Serial.print(" ");        
+        Serial.println(pwm, 6);
+
+        currentDir = pwm < 0 ? MOTOR_CW : MOTOR_CCW;
+        currentPWM = abs(pwm);
+        oldPWM = currentPWM;
+        oldCounter = counter;
+        t0 = t1;        
+        break;
+      }
+      case MOTOR_TO_COUNT: {
         break; 
       }
     }
@@ -138,5 +159,12 @@ private:
   bool done = false;
 
   //PID Controller
-  PID<int16_t, float> pid;
+  PID<float, float> pidV;
+
+  long t0, t1;
+  uint32_t oldCounter;
+  uint16_t oldPWM;
+  float totalT;
+
+
 };

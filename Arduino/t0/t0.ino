@@ -5,41 +5,33 @@
 #include "dc_motor.h"
 #include "ui.h"
 #include "pidS.h"
+#include "rmotors.h"
 
 T0COMM comms;
+RMotors motors;
 
-// Motor(int pinA, int pinB, int pinPWM, int pinEnaA, int pinEnaB, int pinCS)
-Motor FR(AEFR, BEFR, PWMFR, INAFR, INBFR, CSFR);
-Motor FL(AEFL, BEFL, PWMFL, INAFL, INBFL, CSFL);
-Motor BR(AEBR, BEBR, PWMBR, INABR, INBBR, CSBR);
-Motor BL(AEBL, BEBL, PWMBL, INABL, INBBL, CSBL);
-
-void updateAFR() { FR.updateA(); }
-void updateBFR() { FR.updateB(); }
-void updateAFL() { FL.updateA(); }
-void updateBFL() { FL.updateB(); }
-void updateABR() { BR.updateA(); }
-void updateBBR() { BR.updateB(); }
-void updateABL() { BL.updateA(); }
-void updateBBL() { BL.updateB(); }
+void updateAFR() { motors.updateA(RMotors::FR); }
+void updateBFR() { motors.updateB(RMotors::FR); }
+void updateAFL() { motors.updateA(RMotors::FL); }
+void updateBFL() { motors.updateB(RMotors::FL); }
+void updateABR() { motors.updateA(RMotors::BR); }
+void updateBBR() { motors.updateB(RMotors::BR); }
+void updateABL() { motors.updateA(RMotors::BL); }
+void updateBBL() { motors.updateB(RMotors::BL); }
 
 void setup() { 
   	pinMode(LED_BUILTIN, OUTPUT);
 
     comms.initialize();
-    BL.setupMotor();
-    BR.setupMotor();
-    FR.setupMotor();
-    FL.setupMotor();
-    
-    attachInterrupt(digitalPinToInterrupt(FR.getPinA()), updateAFR, CHANGE);
-    attachInterrupt(digitalPinToInterrupt(FR.getPinB()), updateBFR, CHANGE);
-    attachInterrupt(digitalPinToInterrupt(FL.getPinA()), updateAFL, CHANGE);
-    attachInterrupt(digitalPinToInterrupt(FL.getPinB()), updateBFL, CHANGE);
-    attachInterrupt(digitalPinToInterrupt(BR.getPinA()), updateABR, CHANGE);
-    attachInterrupt(digitalPinToInterrupt(BR.getPinB()), updateBBR, CHANGE);
-    attachInterrupt(digitalPinToInterrupt(BL.getPinA()), updateABL, CHANGE);
-    attachInterrupt(digitalPinToInterrupt(BL.getPinB()), updateBBL, CHANGE);
+    motors.setup();
+    attachInterrupt(digitalPinToInterrupt(motors.getPinA(RMotors::FR)), updateAFR, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(motors.getPinB(RMotors::FR)), updateBFR, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(motors.getPinA(RMotors::FL)), updateAFL, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(motors.getPinB(RMotors::FL)), updateBFL, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(motors.getPinA(RMotors::BR)), updateABR, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(motors.getPinB(RMotors::BR)), updateBBR, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(motors.getPinA(RMotors::BL)), updateABL, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(motors.getPinB(RMotors::BL)), updateBBL, CHANGE);
 
     UIInitialize();
     
@@ -50,6 +42,8 @@ void setup() {
     comms.ledOff(0);
     Debug.println("setup done");
     delay(2000);
+
+    motors.goToSpeed(RMotors::BR, 10);
 }
 
 Timer TLed(2000);
@@ -98,17 +92,17 @@ void loop() {
       float vel = abs(rightHatY) / 127.0f * 50;
       Serial.println(vel);
       if (rightHatY < 0) dir = 0;
-      BL.setDir(1 - dir);
-      BL.setPWM(vel);
-      FL.setDir(1 - dir);
-      FL.setPWM(vel);   
-      BR.setDir(dir);
-      BR.setPWM(vel);        
-      FR.setDir(dir);
-      FR.setPWM(vel);
+      // BL.setDir(1 - dir);
+      // BL.setPWM(vel);
+      // FL.setDir(1 - dir);
+      // FL.setPWM(vel);   
+      // BR.setDir(dir);
+      // BR.setPWM(vel);        
+      // FR.setDir(dir);
+      // FR.setPWM(vel);
     }
   }
-
+  motors.update();
 //   nexLoop(nex_listen_list);
-  delay(1);
+  delay(10);
 }
