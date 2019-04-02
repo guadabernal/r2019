@@ -43,7 +43,7 @@ void setup() {
     Debug.println("setup done");
     delay(2000);
 
-    motors.goToSpeed(RMotors::BR, 10);
+    motors.goToSpeed(RMotors::BR, 50);
 }
 
 Timer TLed(2000);
@@ -104,5 +104,5 @@ void loop() {
   }
   motors.update();
 //   nexLoop(nex_listen_list);
-  delay(10);
+  delay(1);
 }

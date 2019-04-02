@@ -13,13 +13,14 @@
 
 #define MOTOR_CPR           1440
 #define GEAR_FACTOR         1
+#define PID_COUNT_MIN       7
 #define ANGLE_COUNT_FACTOR  GEAR_FACTOR * MOTOR_CPR / 360.0
 
 class Motor {
 public:
   Motor(int pinA, int pinB, int pinPWM, int pinEnaA, int pinEnaB, int pinCS)
   : pinA(pinA), pinB(pinB), pinPWM(pinPWM), pinEnaA(pinEnaA), pinEnaB(pinEnaB), pinCS(pinCS)
-  , pidV(3.5, 40, 0)
+  , pidV(0.8, 10, 0.001)
   {}
 
   void setupMotor() {
@@ -56,9 +57,11 @@ public:
 
   //int32_t distanceToCount(float distance) { return distance  * DISTANCE_COUNT_FACTOR; }
 
-  void goToSpeed(float speed) {
+  void goToSpeed(float rpm) {
     mode = MOTOR_TO_SPEED;
-    pidV.reset(speed, 1023,-1023);
+    float ang_vel = rpm / 60; // rps
+    dtPIDMin = PID_COUNT_MIN / float(MOTOR_CPR) / ang_vel; // s
+    pidV.reset(rpm, 1023,-1023);
     t0 = micros();
     oldCounter = counter;
     oldPWM = 0;
@@ -84,6 +87,7 @@ public:
       case MOTOR_TO_SPEED: {
         t1 = micros();
         float dt = t1 - t0;
+        if(dt * 1E-6 < dtPIDMin) break;
         totalT += dt * 1E-3;
         if (totalT > 2000) {
           currentPWM = 0;
@@ -160,6 +164,7 @@ private:
 
   //PID Controller
   PID<float, float> pidV;
+  float dtPIDMin = 0;
 
   long t0, t1;
   uint32_t oldCounter;
