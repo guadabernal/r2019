@@ -92,7 +92,6 @@ public:
 
   void goToDeltaAngle(float dAngle, int16_t PWMMax, int16_t PWMMin, bool endStop = true) {
     float angle = getAngle() + dAngle;
-    Serial.println(angle);
     if (angle > maxAngle) angle = maxAngle;
     if (angle < minAngle) angle = minAngle;    
     goToAngle(angle, PWMMax, PWMMin, endStop);

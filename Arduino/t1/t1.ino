@@ -61,9 +61,9 @@ void loop() {
         break;
       }
       case CMD_ROT_DIR_DANGLE: {
-        float dangle;
-        SerialRead<float>(T0Serial, &dangle);
-        motors.deltaAngleDir(dangle);
+        float dangle[2];
+        SerialRead<float>(T0Serial, dangle, 2);
+        motors.deltaAngleDir(dangle[0], dangle[1]);
         break;
       }
 

@@ -9,6 +9,7 @@
 
 T0COMM comms;
 RMotors motors;
+Robot robot;
 
 void updateAFR() { motors.updateA(RMotors::FR); }
 void updateBFR() { motors.updateB(RMotors::FR); }
@@ -18,6 +19,7 @@ void updateABR() { motors.updateA(RMotors::BR); }
 void updateBBR() { motors.updateB(RMotors::BR); }
 void updateABL() { motors.updateA(RMotors::BL); }
 void updateBBL() { motors.updateB(RMotors::BL); }
+
 
 void setup() { 
   	pinMode(LED_BUILTIN, OUTPUT);
@@ -83,8 +85,8 @@ void loop() {
       if (abs(leftHatX) < 9) leftHatX = 0;
       if (abs(leftHatX) > 100) {
         float dAngle = 3 * sgn(leftHatX);
-        Serial.println(dAngle);
-        comms.rotDirDAngle(dAngle);
+        robot.update(dAngle);
+        comms.rotDirDAngle(robot.dl, robot.dr);
       }
       int rightHatY = int(comms.controllerStatus.rightHatY) - 127;
       if (abs(rightHatY) < 9) rightHatY = 0;

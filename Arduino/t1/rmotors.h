@@ -3,6 +3,27 @@
 #include "pins.h"
 #include "dc_motor.h"
 
+struct Robot {
+  float b;
+  float l;
+  float R;
+  float dl; // in degress
+  float dr; // in degress
+  void update(float dAngle) {
+    if (dAngle == 0) return;
+    float da = degToRad(dAngle);
+    if (da > 0) {
+      R = b / tan(da) + l / 2;
+      dr = radToDeg(atan2(b, (R + l / 2)));
+      dl = dAngle;
+    }
+    else {
+      R = b / tan(da) - l / 2;
+      dl = radToDeg(atan2(b, (R - l / 2)));
+      dr = dAngle;
+    }
+  }
+};
 
 class RMotors {
 public:
@@ -107,21 +128,25 @@ public:
     delay(500);    
   }
 
-  void angleDir(float aL, float aR) {
-    m[FR].goToAngle(aR, 80,-80);  // -90,  50      
-    m[FL].goToAngle(aL, 80,-80); //  90, -50
-    m[BR].goToAngle(-aR, 80,-80); //  90, -50
-    m[BL].goToAngle(-aL, 80,-80);  // -90,  50
+  void angleDir(float a) {
+    m[FR].goToAngle(a, 80,-80);  // -90,  50      
+    m[FL].goToAngle(a, 80,-80); //  90, -50
+    m[BR].goToAngle(-a, 80,-80); //  90, -50
+    m[BL].goToAngle(-a, 80,-80);  // -90,  50
   }
 
   void deltaAngleDir(float dAngle) {
-    for (int i = 0; i < 4; ++i) {
-      if (!m[i].isValidAngle(m[i].getAngle() + dAngle)) return;
-    }
     m[FR].goToDeltaAngle(dAngle, 80,-80);  // -90,  50      
     m[FL].goToDeltaAngle(dAngle, 80,-80); //  90, -50
     m[BR].goToDeltaAngle(-dAngle, 80,-80); //  90, -50
     m[BL].goToDeltaAngle(-dAngle, 80,-80);  // -90,  50    
+  }
+
+  void deltaAngleDir(float dAngleL, float dAngleR) {
+    m[FR].goToDeltaAngle(dAngleR, 80,-80);  // -90,  50      
+    m[FL].goToDeltaAngle(dAngleL, 80,-80); //  90, -50
+    m[BR].goToDeltaAngle(-dAngleR, 80,-80); //  90, -50
+    m[BL].goToDeltaAngle(-dAngleL, 80,-80);  // -90,  50     
   }
 
   void setMaxMinAngles() {

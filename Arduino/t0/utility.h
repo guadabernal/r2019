@@ -37,6 +37,16 @@ T sgn(T v)
   return v > T(0) ? T(1) : T(-1);
 }
 
+template<typename T>
+T degToRad(T angle) {
+    return angle * 3.14159265358 / T(180) ;
+}
+
+template<typename T>
+T radToDeg(T angle) {
+    return angle * T(180) / 3.14159265358;
+}
+
 class Timer {
 public:
     Timer(int time = 0, bool resetWhenDone = true) : t0(millis()), t1(t0), time(time), resetWhenDone(resetWhenDone) {}
