@@ -91,10 +91,11 @@ public:
         SerialWrite<uint8_t>(T1Serial, &cmd);
         SerialWrite<float>(T1Serial, &angle);
     }
-    void rotDirDAngle(float dangle) {
+    void rotDirDAngle(float dangleL, float dangleR) {
         uint8_t cmd = CMD_ROT_DIR_DANGLE;
         SerialWrite<uint8_t>(T1Serial, &cmd);
-        SerialWrite<float>(T1Serial, &dangle);      
+        SerialWrite<float>(T1Serial, &dangleL);
+        SerialWrite<float>(T1Serial, &dangleR);
     }
     //
     // set the other led modes and battery levels

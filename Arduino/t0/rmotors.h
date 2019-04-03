@@ -3,6 +3,28 @@
 #include "pidS.h"
 #include "utility.h"
 
+struct Robot {
+  float b;
+  float l;
+  float R;
+  float dl; // in degress
+  float dr; // in degress
+  void update(float dAngle) {
+    if (dAngle == 0) return;
+    float da = degToRad(dAngle);
+    if (da > 0) {
+      R = b / tan(da) + l / 2;
+      dr = radToDeg(atan2(b, (R + l / 2)));
+      dl = dAngle;
+    }
+    else {
+      R = b / tan(da) - l / 2;
+      dl = radToDeg(atan2(b, (R - l / 2)));
+      dr = dAngle;
+    }
+  }
+};
+
 
 class RMotors {
 public:

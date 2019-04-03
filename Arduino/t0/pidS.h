@@ -17,6 +17,13 @@ public:
         err0 = 0;
         t0 = micros();
     }
+
+    void reset(T tgt) {
+      target = tgt;
+      iErr = 0;
+      err0 = 0;
+      t0 = micros();
+    }
   
     K compute(T input) {
         t1 = micros();
