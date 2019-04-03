@@ -4,25 +4,48 @@
 #include "utility.h"
 
 struct Robot {
-  float b;
-  float l;
+  float b = 214 ;
+  float l2 = 237 / 2;
   float R;
   float dl; // in degress
   float dr; // in degress
+  float angle = 0;
+  
   void update(float dAngle) {
-    if (dAngle == 0) return;
-    float da = degToRad(dAngle);
+    angle  += dAngle;
+    if (angle > 48) angle = 48;
+    if (angle < -48) angle = -48;
+    if (angle == 0) {
+      
+      return;
+    }
+    float da = degToRad(angle);
     if (da > 0) {
-      R = b / tan(da) + l / 2;
-      dr = radToDeg(atan2(b, (R + l / 2)));
-      dl = dAngle;
+      R = b / tan(da) + l2;
+      dl = radToDeg(atan(b / (R + l2)));
+      dr = angle;
     }
     else {
-      R = b / tan(da) - l / 2;
-      dl = radToDeg(atan2(b, (R - l / 2)));
-      dr = dAngle;
+      R = b / tan(da) - l2;
+      dr = radToDeg(atan(b / (R - l2)));
+      dl = angle;
     }
   }
+
+  float getVL(float VR) {
+    float VL = angle == 0 ? -VR : -VR * (R + l2) / (R - l2);
+    Serial.print("angle = ");
+    Serial.print(angle);
+    Serial.print("VR = ");
+    Serial.print(VR);
+    Serial.print("VL = ");
+    Serial.print(VL);
+    Serial.print(" R=");
+    Serial.println(R);
+    return VL;
+  }
+
+  
 };
 
 
@@ -30,10 +53,10 @@ class RMotors {
 public:
   enum MType { FR, FL, BR, BL};
   RMotors()
-  : m{ {AEFR, BEFR, PWMFR, INAFR, INBFR, CSFR}
-     , {AEFL, BEFL, PWMFL, INAFL, INBFL, CSFL}
-     , {AEBR, BEBR, PWMBR, INABR, INBBR, CSBR}
-     , {AEBL, BEBL, PWMBL, INABL, INBBL, CSBL} }
+  : m{ {0, AEFR, BEFR, PWMFR, INAFR, INBFR, CSFR}
+     , {1, AEFL, BEFL, PWMFL, INAFL, INBFL, CSFL}
+     , {2, AEBR, BEBR, PWMBR, INABR, INBBR, CSBR}
+     , {3, AEBL, BEBL, PWMBL, INABL, INBBL, CSBL} }
   {}
 
   void updateA(uint8_t motorId) {
@@ -62,8 +85,9 @@ public:
   }
 
   void update() {
-    for (uint8_t i = 0; i < 4; ++i)
+    for (uint8_t i = 0; i < 4; ++i) {
       m[i].update();
+    }
   }
 
   void resetCounters() {
@@ -83,24 +107,24 @@ public:
       }  
   }
 
-  void goToSpeed(int motorId, float v) {
-  	m[motorId].goToSpeed(v);
-  }
-
-  void goToSpeed(float v) {
-    m[FR].goToSpeed(-v);
-    m[FL].goToSpeed(v);
-    m[BR].goToSpeed(-v);
-    m[BL].goToSpeed(v);
-  }
+//  void goToSpeed(int motorId, float v) {
+//  	m[motorId].goToSpeed(v);
+//  }
+//
+//  void goToSpeed(float v) {
+//    m[FR].goToSpeed(-v);
+//    m[FL].goToSpeed(v);
+//    m[BR].goToSpeed(-v);
+//    m[BL].goToSpeed(v);
+//  }
 
   void goToSpeed(float vl, float vr) {
-    m[FR].goToSpeed(-vr);
+    m[FR].goToSpeed(vr);
     m[FL].goToSpeed(vl);
-    m[BR].goToSpeed(-vr);
+    m[BR].goToSpeed(vr);
     m[BL].goToSpeed(vl);
   }
-
+  
  private:
   Motor m[4];  
 };

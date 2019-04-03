@@ -86,10 +86,11 @@ public:
         SerialWrite<uint8_t>(T1Serial, &cmd);
         SerialReadOK(T1Serial); // blocking
     }
-    void rotDirAngle(float angle) {
+    void rotDirAngle(float angleL, float angleR) {
         uint8_t cmd = CMD_ROT_DIR_ANGLE;
         SerialWrite<uint8_t>(T1Serial, &cmd);
-        SerialWrite<float>(T1Serial, &angle);
+        SerialWrite<float>(T1Serial, &angleL);
+        SerialWrite<float>(T1Serial, &angleR);
     }
     void rotDirDAngle(float dangleL, float dangleR) {
         uint8_t cmd = CMD_ROT_DIR_DANGLE;

@@ -55,9 +55,10 @@ void loop() {
         break;
       }
       case CMD_ROT_DIR_ANGLE: {
-        float angle;
-        SerialRead<float>(T0Serial, &angle);
-        motors.angleDir(angle);
+        float angleL, angleR;
+        SerialRead<float>(T0Serial, &angleL);
+        SerialRead<float>(T0Serial, &angleR);
+        motors.angleDir(angleL, angleR);
         break;
       }
       case CMD_ROT_DIR_DANGLE: {

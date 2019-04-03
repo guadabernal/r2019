@@ -20,9 +20,9 @@
 
 class Motor {
 public:
-  Motor(int pinA, int pinB, int pinPWM, int pinEnaA, int pinEnaB, int pinCS)
-  : pinA(pinA), pinB(pinB), pinPWM(pinPWM), pinEnaA(pinEnaA), pinEnaB(pinEnaB), pinCS(pinCS)
-  , pidV(0.8, 10, 0.001)
+  Motor(int id, int pinA, int pinB, int pinPWM, int pinEnaA, int pinEnaB, int pinCS)
+  : id(id), pinA(pinA), pinB(pinB), pinPWM(pinPWM), pinEnaA(pinEnaA), pinEnaB(pinEnaB), pinCS(pinCS)
+  , pidV(0.8, 10, 0, 1023, -1023)
   {}
 
   void setupMotor() {
@@ -60,22 +60,19 @@ public:
   //int32_t distanceToCount(float distance) { return distance  * DISTANCE_COUNT_FACTOR; }
 
   void goToSpeed(float rpm) {
+    if (rpm == 0) { 
+      mode = MOTOR_NONE;
+      stop();
+      return;
+    }
     mode = MOTOR_TO_SPEED;
     float ang_vel = rpm / 60; // rps
-    dtPIDMin = PID_COUNT_MIN / float(MOTOR_CPR) / ang_vel; // s
+    dtPIDMin = PID_COUNT_MIN / float(MOTOR_CPR) / abs(ang_vel); // s
     if (abs(rpm) > MOTOR_RPM_MAX) rpm = MOTOR_RPM_MAX * sgn(rpm);
-    pidV.reset(rpm);
+    pidV.setTarget(rpm);
     t0 = micros();
     oldCounter = counter;
-    delay(1);
-    update();
   }
-
-  // void goToDistance(float distance, float speed) {
-  //   pid.reset(distanceToCount(distance), PWMMax, PWMMin);
-  //   mode = MOTOR_TO_COUNT;
-  //   done = false;
-  // }
 
   void update() {
     switch (mode) {
@@ -87,11 +84,20 @@ public:
       case MOTOR_NONE: { break; }
       case MOTOR_TO_SPEED: {
         float dt = micros() - t0;
+        //Serial.print("CurrentPWM");
+        //Serial.println(dtPIDMin);        
         if(dt * 1E-6 < dtPIDMin) break;
+        //totalT += dt * 1E-3;
+        //if(totalT > 1000) { stop(); mode = MOTOR_NONE; break; }       
         float currentV = (counter - oldCounter) / dt * (1E6 * 60) / MOTOR_CPR;
         float pwm = pidV.compute(currentV);
         currentDir = pwm < 0 ? MOTOR_CW : MOTOR_CCW;
         currentPWM = abs(pwm);
+        Serial.print(dtPIDMin);
+        Serial.print(" ");
+        Serial.print(pidV.getTarget());
+        Serial.print(" ");
+        Serial.println(currentV);
         oldCounter = counter;
         t0 = micros();        
         break;
@@ -104,6 +110,9 @@ public:
     setDir(currentDir);
   }
 
+  uint32_t getPWM() { return currentPWM; }
+  uint32_t getDir() { return currentDir; }
+
   int getMode() { return mode; }
   int dir() { return counter > 0; }
   
@@ -112,6 +121,7 @@ public:
   int counter;  
 
   void resetCounter() { counter = 0; }
+  
   
   void updateA() {
     int vB = digitalRead(pinB);
@@ -134,6 +144,7 @@ public:
   int getPinB() { return pinB; }
 
 private: 
+  int id;
   int pinA;
   int pinB;
   int pinPWM;
@@ -152,5 +163,6 @@ private:
   PID<float, float> pidV;
   float dtPIDMin = 0;
   long t0, t1;
-  uint32_t oldCounter;
+  int32_t oldCounter;
+  float totalT = 0;
 };

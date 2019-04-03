@@ -7,35 +7,17 @@ class PID
 public:
     PID() {}
 
-    PID(K Kp, K Ki, K Kd) : Kp(Kp), Ki(Ki), Kd(Kd) {}
+    PID(K Kp, K Ki, K Kd, K maxOutput, K minOutput) : Kp(Kp), Ki(Ki), Kd(Kd), maxOutput(maxOutput), minOutput(minOutput) {}
 
-    void reset(T tgt, K inmaxOutput, K inminOutput) {
-        maxOutput = inmaxOutput;
-        minOutput = inminOutput;
-        target = tgt;
-        iErr = 0;
-        err0 = 0;
-        t0 = micros();
-    }
 
-    void reset(T tgt) {
-      target = tgt;
-      iErr = 0;
-      err0 = 0;
-      t0 = micros();
-    }
-  
     K compute(T input) {
         t1 = micros();
         K dt = (K(t1) - K(t0)) * 1E-6;
-        if (dt < 1E-4) return output0;
-                      
+        if (dt < 1E-4) return output0;                      
         t0 = t1;
-
         err = target - input;   
         if (Ki != 0)
           iErr += err * dt;
-
         dErr = (err - err0) / dt;
         err0 = err;
         K output = K(Kp * err + Ki * iErr + Kd * dErr);
@@ -45,6 +27,10 @@ public:
     }
   
     T getTarget() { return target; }
+    void setTarget(T tgt) {
+       t0 = micros();
+       target = tgt;
+    }
 
 private:
     T target;
