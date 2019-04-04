@@ -40,8 +40,9 @@ void setup() {
     delay(500);
     comms.ledOn(0);
     comms.ledRGBA(0, 30, 150, 240, 0);
+    comms.ledRGBA(1, 240, 0, 240, 0);
     delay(500);
-    comms.ledOff(0);
+    //comms.ledOff(0);
     Debug.println("setup done");
     delay(2000);
     //motors.goToSpeed(20, 20);
