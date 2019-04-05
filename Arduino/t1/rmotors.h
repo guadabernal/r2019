@@ -7,10 +7,10 @@ class RMotors {
 public:
   enum MType { FR, FL, BR, BL};
   RMotors()
-  : m{ {AERFR, BERFR, PWMRFR, INARFR, INBRFR, CSRFR, SIGFR}
-     , {AERFL, BERFL, PWMRFL, INARFL, INBRFL, CSRFL, SIGFL}
-     , {AERBR, BERBR, PWMRBR, INARBR, INBRBR, CSRBR, SIGBR}
-     , {AERBL, BERBL, PWMRBL, INARBL, INBRBL, CSRBL, SIGBL} }
+  : m{ {0, AERFR, BERFR, PWMRFR, INARFR, INBRFR, CSRFR, SIGFR}
+     , {1, AERFL, BERFL, PWMRFL, INARFL, INBRFL, CSRFL, SIGFL}
+     , {2, AERBR, BERBR, PWMRBR, INARBR, INBRBR, CSRBR, SIGBR}
+     , {3, AERBL, BERBL, PWMRBL, INARBL, INBRBL, CSRBL, SIGBL} }
   {}
 
   void updateA(uint8_t motorId) {
@@ -76,11 +76,11 @@ public:
     resetCounters();
 
     // setInitial 90 degress angle
-    m[BL].goToAngle(8, 40,-40, false);
-    m[BR].goToAngle(-10, 40,-40, false); 
-    m[FL].goToAngle(-3, 40,-40, false); 
-    m[FR].goToAngle(8, 40,-40, false);      
-    waitForAll(1);
+    m[BL].goToAngle(10, 40,-40, false);
+    m[BR].goToAngle(-5, 40,-40, false); 
+    m[FL].goToAngle(-5, 40,-40, false); 
+    m[FR].goToAngle(7, 40,-40, false);      
+    waitForAll(5);
     delay(500);
     resetCounters();
 
@@ -89,7 +89,7 @@ public:
     m[BR].goToAngle(-90, 80,-80); //  90, -50
     m[FL].goToAngle(-90, 80,-80); //  90, -50
     m[FR].goToAngle(90, 80,-80);  // -90,  50  
-    waitForAll(1);
+    waitForAll(5);
     delay(500);
     off();
     resetCounters();
@@ -97,12 +97,12 @@ public:
   }
 
   void rotatePos() {
-    float rotAngle = 50; // fix this angle
+    float rotAngle = 61; // fix this angle 61
     m[FR].goToAngle(-rotAngle, 80,-80);  // -90,  50     
     m[FL].goToAngle(rotAngle, 80,-80); //  90, -50
     m[BR].goToAngle(rotAngle, 80,-80); //  90, -50
     m[BL].goToAngle(-rotAngle, 80,-80);  // -90,  50
-    waitForAll(1);
+    waitForAll(5);
     delay(500);    
   }
 

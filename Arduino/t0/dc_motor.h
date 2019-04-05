@@ -63,6 +63,7 @@ public:
     if (rpm == 0) { 
       mode = MOTOR_NONE;
       stop();
+      pidV.reset();
       return;
     }
     mode = MOTOR_TO_SPEED;
@@ -84,20 +85,11 @@ public:
       case MOTOR_NONE: { break; }
       case MOTOR_TO_SPEED: {
         float dt = micros() - t0;
-        //Serial.print("CurrentPWM");
-        //Serial.println(dtPIDMin);        
         if(dt * 1E-6 < dtPIDMin) break;
-        //totalT += dt * 1E-3;
-        //if(totalT > 1000) { stop(); mode = MOTOR_NONE; break; }       
         float currentV = (counter - oldCounter) / dt * (1E6 * 60) / MOTOR_CPR;
         float pwm = pidV.compute(currentV);
         currentDir = pwm < 0 ? MOTOR_CW : MOTOR_CCW;
         currentPWM = abs(pwm);
-        Serial.print(dtPIDMin);
-        Serial.print(" ");
-        Serial.print(pidV.getTarget());
-        Serial.print(" ");
-        Serial.println(currentV);
         oldCounter = counter;
         t0 = micros();        
         break;

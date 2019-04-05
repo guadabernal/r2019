@@ -20,9 +20,8 @@ void SerialWriteOK(HardwareSerial &S) {
 }
 
 bool SerialReadOK(HardwareSerial &S) {
-    while (S.available() < 1)  delay(1);
-    uint8_t p = 0;
-    S.write((uint8_t*) &p, 1);
+    uint8_t p = 0;  
+    SerialRead<uint8_t>(S, &p);
     return (p == MSG_OK);
 }
 
@@ -30,6 +29,22 @@ template<typename T>
 T clip(T v, T vmin, T vmax)
 {
     return v < vmin ? vmin : v > vmax ? vmax : v;
+}
+
+template<typename T>
+T sgn(T v)
+{
+  return v > T(0) ? T(1) : T(-1);
+}
+
+template<typename T>
+T degToRad(T angle) {
+    return angle * 3.14159265358 / T(180) ;
+}
+
+template<typename T>
+T radToDeg(T angle) {
+    return angle * T(180) / 3.14159265358;
 }
 
 class Timer {

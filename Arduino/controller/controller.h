@@ -45,7 +45,4 @@ struct ControllerData {
     	left = PS4.getButtonPress(LEFT);
 	  }
 	}
-
-	
-
 } __attribute__((packed, aligned(1)));

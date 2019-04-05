@@ -47,7 +47,8 @@ public:
         T1Serial.begin(115200);
         T2Serial.begin(115200);
         DisplaySerial.begin(115200);
-        CSerial.begin(115200);
+        LPSerial.begin(57600);
+        CSerial.begin(57600);
     }
 
     // T2 Commands
@@ -106,6 +107,7 @@ public:
     void readControllerStatus() {
         uint8_t cmd = CMD_CONT_READ;
         SerialWrite<uint8_t>(CSerial, &cmd);
+        delay(1);
         SerialRead<ControllerData>(CSerial, &controllerStatus);
     }
 

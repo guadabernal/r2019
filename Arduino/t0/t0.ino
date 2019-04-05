@@ -23,7 +23,7 @@ void updateBBL() { motors.updateB(RMotors::BL); }
 
 void setup() { 
   	pinMode(LED_BUILTIN, OUTPUT);
-
+    digitalWrite(LED_BUILTIN, HIGH); 
     comms.initialize();
     motors.setup();
     attachInterrupt(digitalPinToInterrupt(motors.getPinA(RMotors::FR)), updateAFR, CHANGE);
@@ -39,13 +39,14 @@ void setup() {
     
     delay(500);
     comms.ledOn(0);
-    comms.ledRGBA(0, 30, 150, 240, 0);
-    comms.ledRGBA(1, 240, 0, 240, 0);
+    comms.ledRGBA(0, 255, 255, 255, 255);
+    //comms.ledRGBA(0, 30, 150, 240, 0);
+    //comms.ledRGBA(1, 240, 0, 240, 0);
     delay(500);
-    //comms.ledOff(0);
+    comms.ledOff(0);
     Debug.println("setup done");
     delay(2000);
-    //motors.goToSpeed(20, 20);
+    //comms.rotResetPos();
 }
 
 Timer TLed(2000);
@@ -60,7 +61,7 @@ int t1done = false;
 void loop() {
   if (TLed) { 
     digitalWrite(LED_BUILTIN, TLedStatus); 
-    TLedStatus = !TLedStatus; 
+    TLedStatus = !TLedStatus;
   }
   if (TT1 && !t1done) {
     Debug.println("sending reset pos");
@@ -71,40 +72,38 @@ void loop() {
     comms.readControllerStatus(); // blocking
     if (comms.controllerStatus.connected) {
       if (comms.controllerStatus.triangle) {
+        comms.ledRGBA(0, 255, 255, 255, 255);
         comms.rotResetPos(); // blocking
-        robot.angle = 0;
-        Debug.println("sending reset pos");
+        robot.setAngle(0);
+        robot.setMode(Robot::Normal);
       }
       if (comms.controllerStatus.circle) {
         comms.rotRotate(); // blocking
-        Debug.println("sending reset pos");
+        robot.setMode(Robot::Rotate);
+        motors.goToSpeed(0, 0);
       }
       if (comms.controllerStatus.cross) {
         comms.rotDirAngle(0, 0); // blocking
-        robot.angle = 0;
-        Debug.println("sending reset pos");
+        robot.setAngle(0);
+        robot.setMode(Robot::Normal);
       }
       int leftHatX = int(comms.controllerStatus.leftHatX)- 127;
       if (abs(leftHatX) < 9) leftHatX = 0;
       if (abs(leftHatX) > 100) {
         float dAngle = 0.5 * sgn(leftHatX);
-        robot.update(dAngle);
+        robot.increaseAngle(dAngle);
         comms.rotDirAngle(robot.dl, robot.dr);
       }
       if (TSController) {
         int rightHatY = 127-int(comms.controllerStatus.rightHatY);
         if (abs(rightHatY) < 9) rightHatY = 0;
         int dir = 1;
-        float VR = rightHatY / 127.0f * 40;
-        float VL = robot.getVL(VR);
-  //      Serial.print(VR);
-  //      Serial.print(" ");
-  //      Serial.println(VL);
-        motors.goToSpeed(VL, VR);
+        robot.setVel(rightHatY / 127.0f * 40);
+        motors.goToSpeed(robot.VL, robot.VR);
       }
     }
   }
   motors.update();
-//   nexLoop(nex_listen_list);
+//  nexLoop(nex_listen_list);
   delay(1);
 }

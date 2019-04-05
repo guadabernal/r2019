@@ -16,8 +16,9 @@ public:
         if (dt < 1E-4) return output0;                      
         t0 = t1;
         err = target - input;   
-        if (Ki != 0)
-          iErr += err * dt;
+        K newIErr = iErr + err * dt;
+        if (Ki * newIErr < maxOutput  && Ki * newIErr > minOutput)
+          iErr = newIErr;
         dErr = (err - err0) / dt;
         err0 = err;
         K output = K(Kp * err + Ki * iErr + Kd * dErr);
@@ -27,6 +28,13 @@ public:
     }
   
     T getTarget() { return target; }
+
+    
+    void reset() {
+      err0 = 0;
+      iErr = 0;
+      t0 = micros();
+    }
     void setTarget(T tgt) {
        t0 = micros();
        target = tgt;

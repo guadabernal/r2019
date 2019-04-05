@@ -20,8 +20,8 @@
 
 class Motor {
 public:
-  Motor(int pinA, int pinB, int pinPWM, int pinEnaA, int pinEnaB, int pinCS, int pinEndStop = 0)
-  : pinA(pinA), pinB(pinB), pinPWM(pinPWM), pinEnaA(pinEnaA), pinEnaB(pinEnaB), pinCS(pinCS)
+  Motor(int id, int pinA, int pinB, int pinPWM, int pinEnaA, int pinEnaB, int pinCS, int pinEndStop = 0)
+  : id(id), pinA(pinA), pinB(pinB), pinPWM(pinPWM), pinEnaA(pinEnaA), pinEnaB(pinEnaB), pinCS(pinCS)
   , pinEndStop(pinEndStop), pid(3, 0, 0.08)
   {}
 
@@ -84,7 +84,7 @@ public:
   }
 
   void goToAngle(float angle, int16_t PWMMax, int16_t PWMMin, bool endStop = true) {
-    pid.reset(angleToCount(angle), PWMMax, PWMMin); //CCCW  90deg   3200=360  1600=180  800=90
+    pid.setTarget(angleToCount(angle), PWMMax, PWMMin); //CCCW  90deg   3200=360  1600=180  800=90
     mode = MOTOR_TO_ANG;
     checkEndStop = endStop;
     done = false;
@@ -145,7 +145,15 @@ public:
           currentDir = MOTOR_CCW;
         float diff = pid.getTarget() - counter;
         currentPWM = abs(pwm);
-        if (currentPWM < 10) currentPWM = 0;
+        if (currentPWM < 35) {
+          currentPWM = 0;
+        }
+        Serial.print(pid.getTarget());
+        Serial.print(" ");
+        Serial.print(counter);
+        Serial.print(" ");
+        Serial.println(currentPWM);
+        
         if (abs(diff) < 10) {
           off();
           done = true;
@@ -166,7 +174,7 @@ public:
 
   void resetCounter() { 
     counter = 0; 
-    pid.reset(counter);
+    pid.setTarget(counter);
   }
   
   void updateA() {
@@ -197,7 +205,8 @@ public:
     minAngle = minA < maxA ? minA : maxA;
   }
 
-private: 
+private:
+  int id;
   int pinA;
   int pinB;
   int pinPWM;

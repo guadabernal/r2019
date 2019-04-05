@@ -24,11 +24,10 @@ void updateBRBR() { motors.updateB(RMotors::BR); }
 void updateARBL() { motors.updateA(RMotors::BL); }
 void updateBRBL() { motors.updateB(RMotors::BL); }
 
-
 void setup() {
-    Debug.begin(9600); // Debug serial port
+  //  Debug.begin(115200); // Debug serial port
     T0Serial.begin(115200); // TMain communication
-
+    Serial.begin(115200);
     motors.setup();
     attachInterrupt(digitalPinToInterrupt(motors.getPinA(RMotors::FR)), updateARFR, CHANGE);
     attachInterrupt(digitalPinToInterrupt(motors.getPinB(RMotors::FR)), updateBRFR, CHANGE);
@@ -38,23 +37,26 @@ void setup() {
     attachInterrupt(digitalPinToInterrupt(motors.getPinB(RMotors::BR)), updateBRBR, CHANGE);
     attachInterrupt(digitalPinToInterrupt(motors.getPinA(RMotors::BL)), updateARBL, CHANGE);
     attachInterrupt(digitalPinToInterrupt(motors.getPinB(RMotors::BL)), updateBRBL, CHANGE);
-
+    delay(1000);
   //  motors.resetPosition();
+    Serial.println("Setup Done");
 }
 
 void loop() {
   if(T0Serial.available() > 0) {
-    
     uint8_t cmd;
     SerialRead<uint8_t>(T0Serial, &cmd);
+    Serial.println(cmd);
     switch (cmd) {
       case CMD_ROT_RESET_POS: {
+        Serial.println("CMD_ROT_RESET_POS");
         Debug.println("Received resetPos");
         motors.resetPosition(); // blocking here, T0 should wait untill we're done
         SerialWriteOK(T0Serial);
         break;
       }
       case CMD_ROT_DIR_ANGLE: {
+        Serial.println("DirAngle");
         float angleL, angleR;
         SerialRead<float>(T0Serial, &angleL);
         SerialRead<float>(T0Serial, &angleR);

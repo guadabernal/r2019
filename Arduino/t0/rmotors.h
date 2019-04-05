@@ -4,48 +4,95 @@
 #include "utility.h"
 
 struct Robot {
+  enum { Normal, Rotate };
   float b = 214 ;
   float l2 = 237 / 2;
   float R;
   float dl; // in degress
   float dr; // in degress
   float angle = 0;
+  float VR;
+  float VL;
+  float v = 0;
+  uint8_t mode = Normal;
+
+  Robot() {
+    update();
+  }
+
+  void setMode(uint8_t m) {
+    mode = m;
+  }
   
-  void update(float dAngle) {
-    angle  += dAngle;
+  void  increaseAngle(float dAngle) {
+    if (mode == Normal) {
+      angle += dAngle;
+      update();
+    }
+  }
+  
+  void setAngle(float a) {
+    if (mode == Normal) {
+      angle = a;
+      update();
+    }
+  }
+
+  void setVel(float vel) {
+    v = vel;
+    if (mode == Normal) {
+      update();
+    }
+    if (mode == Rotate) {
+      VL = v;
+      VR = v;
+    }
+  }
+  
+  void update() {
     if (angle > 48) angle = 48;
     if (angle < -48) angle = -48;
-    if (angle == 0) {
-      
-      return;
-    }
-    float da = degToRad(angle);
-    if (da > 0) {
-      R = b / tan(da) + l2;
-      dl = radToDeg(atan(b / (R + l2)));
-      dr = angle;
+    if (abs(angle) > 0.05) {
+      float da = degToRad(angle);
+      if (da > 0) {
+        R = b / tan(da) + l2;
+        if (abs(R) < 10000) {
+          dl = radToDeg(atan(b / (R + l2)));
+          dr = angle;
+        }
+        else {
+          dl = 0;
+          dr = 0;
+        }
+      }
+      else {
+        R = b / tan(da) - l2;
+        if (abs(R) < 10000) {
+          dr = radToDeg(atan(b / (R - l2)));
+          dl = angle;
+        }
+        else {
+          dr = 0;
+          dl = 0;
+        }
+      }
+      float cR = (R+l2) / (R-l2);
+      if (cR > 1) {
+        VL = -v;
+        VR = -VL / cR;
+      }
+      else {
+        VR = v;
+        VL = -VR * cR;
+      }          
     }
     else {
-      R = b / tan(da) - l2;
-      dr = radToDeg(atan(b / (R - l2)));
-      dl = angle;
+      angle = 0;
+      VR = v;
+      VL = -VR;     
     }
   }
-
-  float getVL(float VR) {
-    float VL = angle == 0 ? -VR : -VR * (R + l2) / (R - l2);
-    Serial.print("angle = ");
-    Serial.print(angle);
-    Serial.print("VR = ");
-    Serial.print(VR);
-    Serial.print("VL = ");
-    Serial.print(VL);
-    Serial.print(" R=");
-    Serial.println(R);
-    return VL;
-  }
-
-  
+ 
 };
 
 
@@ -106,17 +153,6 @@ public:
         delay(updateTime);
       }  
   }
-
-//  void goToSpeed(int motorId, float v) {
-//  	m[motorId].goToSpeed(v);
-//  }
-//
-//  void goToSpeed(float v) {
-//    m[FR].goToSpeed(-v);
-//    m[FL].goToSpeed(v);
-//    m[BR].goToSpeed(-v);
-//    m[BL].goToSpeed(v);
-//  }
 
   void goToSpeed(float vl, float vr) {
     m[FR].goToSpeed(vr);
