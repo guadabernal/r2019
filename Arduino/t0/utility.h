@@ -3,6 +3,14 @@
 
 #define MSG_OK 1
 
+
+template<typename T>
+void SerialRead0(T* p, uint16_t count = 1) {
+    while(Serial.available() < count * sizeof(T)) delay(1);
+    Serial.readBytes((char*) p, count * sizeof(T));
+}
+
+
 template<typename T>
 void SerialRead(HardwareSerial &S, T* p, uint16_t count = 1) {
     while(S.available() < count * sizeof(T)) delay(1);

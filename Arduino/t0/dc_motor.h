@@ -116,6 +116,13 @@ public:
         currentDir = pwm < 0 ? MOTOR_CW : MOTOR_CCW;
         currentPWM = abs(pwm);
         oldCounter = counter;
+//                Serial.print(id);
+//        Serial.print(" ");
+//        Serial.print(counter);
+//        Serial.print(" ");
+//        Serial.print(oldCounter);       
+//        Serial.print(" ");
+//        Serial.println(currentV);
         t0 = micros();        
         break;
       }
@@ -138,11 +145,11 @@ public:
         currentDir = pwm < 0 ? MOTOR_CW : MOTOR_CCW;
         currentPWM = abs(pwm);
         oldCounter = counter;
-        Serial.print(id);
-        Serial.print(" ");
-        Serial.print(counter);
-        Serial.print(" ");
-        Serial.println(currentV);
+//        Serial.print(id);
+//        Serial.print(" ");
+//        Serial.print(counter);
+//        Serial.print(" ");
+//        Serial.println(currentV);
 
         if (abs(counter - pidD.getTarget()) < 10) {
           off();

@@ -118,20 +118,43 @@ void loop() {
             }
             case CMD_LED_BLINKMODE: {
                 uint8_t index;
+                uint16_t time;
                 Serial1Read<uint8_t>(&index);
-                if (index < 2) strip[index].blinkMode();
+                Serial1Read<uint16_t>(&time);
+                if (index < 2) strip[index].blinkMode(time);
                 break;
             }
-            
-
-            // #define CMD_LED_DIM             10
-            // #define CMD_LED_BLINKMODE       11
-            // #define CMD_LED_SMOOTHMODE      13
-            // #define CMD_LED_FADEMODE        14
-            // #define CMD_LED_FADECURRENTMODE 15
-
-
-            // .. describe other commands
+            case CMD_LED_SMOOTHMODE: {
+                uint8_t index;
+                uint8_t set;
+                uint16_t time;
+                Serial1Read<uint8_t>(&index);
+                Serial1Read<uint8_t>(&set);
+                Serial1Read<uint16_t>(&time);
+                Serial.print("Smoothe "); Serial.print(set); Serial.print(" "); Serial.println(time);
+                if (index < 2) strip[index].smoothMode(set, time);
+                break;
+            }      
+            case CMD_LED_FADEMODE: {
+                uint8_t index;
+                uint8_t set;
+                uint16_t time;
+                Serial1Read<uint8_t>(&index);
+                Serial1Read<uint8_t>(&set);
+                Serial1Read<uint16_t>(&time);
+                Serial.print("FADEMODE "); Serial.print(set); Serial.print(" "); Serial.println(time);
+                if (index < 2) strip[index].fadeMode(set, time);
+                break;
+            }
+            case CMD_LED_FADECURRENTMODE: {
+                uint8_t index;
+                uint16_t time;
+                Serial1Read<uint8_t>(&index);
+                Serial1Read<uint16_t>(&time);
+                Serial.println("FadeCurrent "); Serial.println(time);
+                if (index < 2) strip[index].fadeCurrentMode(time);
+                break;
+            }
         }
     }
   

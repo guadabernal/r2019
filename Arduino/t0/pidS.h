@@ -24,10 +24,12 @@ public:
         err0 = err;
         K output = K(Kp * err + Ki * iErr + Kd * dErr);
         output = output > maxOutput ? maxOutput : output < minOutput ? minOutput : output;
-        Serial.print(" Target = "); Serial.print(target);
-        Serial.print(" Input = "); Serial.print(input);        
-        Serial.print(" Err = "); Serial.print(err);
-        Serial.print(" output = "); Serial.println(output);
+//        Serial.print(" Target = "); Serial.print(target);
+//        Serial.print(" Input = "); Serial.print(input);        
+//        Serial.print(" Err = "); Serial.print(err);
+//        Serial.print(" maxOutput = "); Serial.print(maxOutput);
+//        Serial.print(" minOutputr = "); Serial.print(minOutput);
+//        Serial.print(" output = "); Serial.println(output);
         output0 = output;
         return output;
     }

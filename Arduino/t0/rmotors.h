@@ -177,7 +177,11 @@ public:
     m[BR].goToDistance(v, -distance);
     m[BL].goToDistance(v, distance);
   }
-  
+
+  void rotateAngle(float v, float angle) {
+    float distance = angle / 90.0f * 0.42;
+    rotateToDistance( v, distance);
+  }
   
  private:
   Motor m[4];  

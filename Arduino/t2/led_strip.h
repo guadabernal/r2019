@@ -224,16 +224,17 @@ public:
                 color = interpolateRGB(color, nextColor, et);
             }
 
-            if (fadeEnable) {                
+            if (fadeEnable) {               
                 if (fadeTimer) {
-                    fadeIndex = (fadeIndex + 1) % transitionColorsSize;
-                    color = transitionTable[fadeSet][fadeIndex];
+                    fadeIndex = (fadeIndex + 1) % transitionColorsSize;                   
                 }
+                RGBWColor color1 = transitionTable[fadeSet][fadeIndex];
+ 
                 float et = fadeTimer.elapsedPercentage();
                 if (et < 0.5)
-                    color = interpolateRGB(BLACK, color, 2 * et);
+                    color = interpolateRGB(BLACK, color1, 2 * et);
                 else
-                    color = interpolateRGB(color, BLACK, 1 - 2 * et);
+                    color = interpolateRGB(color1, BLACK, 2 * (et - 0.5));
             }
 
             if (fadeCurrentEnable) {                
@@ -241,9 +242,9 @@ public:
                     color = fadeCurrentColor;
                 float et = fadeCurrentTimer.elapsedPercentage();
                 if (et < 0.5)
-                    color = interpolateRGB(BLACK, color, 2 * et);
+                    color = interpolateRGB(BLACK, fadeCurrentColor, 2 * et);
                 else
-                    color = interpolateRGB(color, BLACK, 1 - 2 * et);
+                    color = interpolateRGB(fadeCurrentColor, BLACK, 2 * (et - 0.5));
             }
 
             writeCurrentColor();

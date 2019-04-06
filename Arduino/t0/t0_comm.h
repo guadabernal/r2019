@@ -21,8 +21,8 @@
 #define CMD_LED_FADECURRENTMODE 15
 #define CMD_BATTERY_CAPACITY    16
 
-#define LED_NMODES 7
-uint8_t modes[LED_NMODES] = {3, 4, 5, 6, 7, 8, 9};
+#define LED_NMODES 11
+uint8_t modes[LED_NMODES] = {3, 4, 5, 6, 7, 8, 9, 12, 13, 14, 15};
 
 // T1 Commands
 #define CMD_ROT_RESET_POS       30 
@@ -34,12 +34,19 @@ uint8_t modes[LED_NMODES] = {3, 4, 5, 6, 7, 8, 9};
 // Controller Commands
 #define CMD_CONT_READ           40
 
+
+// Laptop Commands
+#define CMD_LAP_STOP            80
+#define CMD_LAP_FWD             81
+#define CMD_LAP_ROT             82
+
 #define Debug                   Serial
 #define LPSerial                Serial4
 #define T2Serial                Serial2
 #define T1Serial                Serial1
 #define DisplaySerial           Serial3 // hardcoded in nextion library, because they are lazy
 #define CSerial                 Serial6 // green RX blue TX at t0
+
 
 class T0COMM {
 public:
@@ -65,7 +72,7 @@ public:
         SerialWrite<uint8_t>(T2Serial, send, 2);
     }
     
-    void ledJumpMode(uint8_t strip, uint8_t set, uint16_t time) {
+    void ledJumpMode(uint8_t strip, uint8_t set, uint16_t time = 2000) {
         uint8_t send[3] = { CMD_LED_JUMPMODE, strip , set};
         SerialWrite<uint8_t>(T2Serial, send, 3);
         SerialWrite<uint16_t>(T2Serial, &time);
@@ -104,9 +111,25 @@ public:
         uint8_t send[3]  = { CMD_LED_DIM, strip, dim };
         SerialWrite<uint8_t>(T2Serial, send, 3);
     }
-    void ledBlinkMode(uint8_t strip){
+    void ledBlinkMode(uint8_t strip, uint16_t t = 1000){
         uint8_t send[2]  = { CMD_LED_BLINKMODE, strip };
         SerialWrite<uint8_t>(T2Serial, send, 2);
+        SerialWrite<uint16_t>(T2Serial, &t);
+    }
+    void ledSmoothMode(uint8_t strip, uint8_t set, uint16_t t = 4000){
+        uint8_t send[3]  = { CMD_LED_SMOOTHMODE, strip, set };
+        SerialWrite<uint8_t>(T2Serial, send, 3);
+        SerialWrite<uint16_t>(T2Serial, &t);
+    }
+    void ledFadeMode(uint8_t strip, uint8_t set, uint16_t t = 4000){
+        uint8_t send[3]  = { CMD_LED_FADEMODE, strip, set };
+        SerialWrite<uint8_t>(T2Serial, send, 3);
+        SerialWrite<uint16_t>(T2Serial, &t);
+    }
+    void ledFadeCurrentMode(uint8_t strip, uint16_t t = 4000){
+        uint8_t send[2]  = { CMD_LED_FADECURRENTMODE, strip };
+        SerialWrite<uint8_t>(T2Serial, send, 2);
+        SerialWrite<uint16_t>(T2Serial, &t);
     }
 
     void ledNextMode(uint8_t strip, uint8_t r, uint8_t g, uint8_t b, uint8_t a){
@@ -115,40 +138,52 @@ public:
         Serial.println(currentMode[strip]);
         uint8_t mode = modes[currentMode[strip]];
         switch (mode) {
-            case 3: { 
+            case CMD_LED_RGBA: { 
                 ledRGBA(strip, r, g, b, a);
                 break;
             }
-            case 4: { 
+            case CMD_LED_RED: { 
                 ledRed(strip);
                 break;
             }
-            case 5: { 
+            case CMD_LED_GREEN: { 
                 ledGreen(strip);
                 break;
             }
-            case 6: { 
+            case CMD_LED_BLUE: { 
                 ledBlue(strip);
                 break;
             }
-            case 7: { 
+            case CMD_LED_WHITE: { 
                 ledWhite(strip);
                 break;
             }
-            case 8: { 
+            case CMD_LED_WHITEONLY: { 
                 ledWhiteOnly(strip);
                 break;
             }
-            case 9: { 
+            case CMD_LED_WHITEFULL: { 
                 ledWhiteFull(strip);
                 break;
             }
+            case CMD_LED_JUMPMODE: { 
+                ledJumpMode(strip, 0);
+                break;
+            }
+            case CMD_LED_SMOOTHMODE: { 
+                ledSmoothMode(strip, 0);
+                break;
+            }
+            case CMD_LED_FADEMODE: { 
+                ledFadeMode(strip, 0);
+                break;
+            }
+            case CMD_LED_FADECURRENTMODE: { 
+                ledFadeCurrentMode(strip);
+                break;
+            }                        
         }
     }
-
-    //
-    // set the other led modes and battery levels
-    // ....
 
     // T1 Commands
     void rotResetPos() {
@@ -173,10 +208,6 @@ public:
         SerialWrite<float>(T1Serial, &dangleL);
         SerialWrite<float>(T1Serial, &dangleR);
     }
-    
-    //
-    // set the other led modes and battery levels
-    // ....
 
     // Controller commands
     void readControllerStatus() {
@@ -184,6 +215,12 @@ public:
         SerialWrite<uint8_t>(CSerial, &cmd);
         delay(1);
         SerialRead<ControllerData>(CSerial, &controllerStatus);
+    }
+
+    // Laptop Commands
+    void readLaptopCMD(){
+
+       
     }
 
     ControllerData controllerStatus;  

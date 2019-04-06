@@ -40,7 +40,7 @@ void setup() {
     delay(500);
     comms.ledOn(0);
     comms.ledRGBA(0, 255, 0, 0, 0);
-    comms.ledRGBA(1, 255, 0, 0, 0);
+    comms.ledRGBA(1, 0, 255, 0, 0);
     //comms.ledRGBA(0, 30, 150, 240, 0);
     //comms.ledRGBA(1, 240, 0, 240, 0);
     delay(500);
@@ -48,29 +48,7 @@ void setup() {
     Debug.println("setup done");
     delay(2000);
     //comms.rotResetPos();
-    //motors.goToDistance(20, -0.2);
-
-//    delay(1000);
-//    comms.rotResetPos(); // blocking
-//    robot.setAngle(0);
-//    robot.setMode(Robot::Normal);
-//    delay(1000);
-//    comms.rotRotate(); // blocking
-//    robot.setMode(Robot::Rotate);
-//    motors.goToSpeed(0, 0);
-//    delay(1000);    
-    motors.rotateToDistance(20, 0.42);
-    motors.waitForAll();
-    delay(1000);
-    motors.rotateToDistance(20, 0.42);
-    motors.waitForAll();
-    delay(1000);
-    motors.rotateToDistance(20, 0.42);
-    motors.waitForAll();
-    delay(1000);
-    motors.rotateToDistance(20, 0.42);
-    motors.waitForAll();
-    delay(1000);
+   
 }
 
 Timer TLed(2000);
@@ -82,6 +60,8 @@ Timer TController(5);
 Timer TSController(30);
 
 Timer TT1(2000);
+
+Timer TLaptop(10);
 int t1done = false;
 int dim = 50;
 
@@ -89,11 +69,45 @@ void loop() {
   if (TLed) { 
     digitalWrite(LED_BUILTIN, TLedStatus); 
     TLedStatus = !TLedStatus;
+   // LPSerial.println("HEre");
   }
   if (TT1 && !t1done) {
     Debug.println("sending reset pos");
     t1done = true;
     //comms.rotResetPos(); // blocking
+  }
+  if (TLaptop) {
+    if (Serial.available() > 0) {
+       comms.ledSmoothMode(1, 0);
+      uint8_t cmd;
+      SerialRead0<uint8_t>(&cmd);
+      switch(cmd) {
+        case CMD_LAP_STOP: {
+          motors.off();
+          break;
+        }
+        case CMD_LAP_FWD: {
+          comms.ledJumpMode(1, 0);
+          int16_t d;
+          SerialRead0<int16_t>(&d);
+          float distance = d / 32768.0 * 100;
+          comms.rotDirAngle(0, 0); // blocking
+          robot.setAngle(0);
+          robot.setMode(Robot::Normal);
+          //motors.goToDistance(20, distance);      
+          break;
+        }
+        case CMD_LAP_ROT: {
+          comms.ledFadeMode(1, 0);
+          int16_t a;
+          SerialRead0<int16_t>(&a);
+          float angle = a / 32768.0 * 180;
+          robot.increaseAngle(2 * sgn(a));
+          comms.rotDirAngle(robot.dl, robot.dr);    
+          break;
+        }
+      }
+    } 
   }
   if (TController) {
     comms.readControllerStatus(); // blocking
