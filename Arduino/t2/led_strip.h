@@ -146,8 +146,8 @@ public:
    
     // blink current color on an off independently of the mode
     // does not clear current mode
-    void blinkMode(bool enable, uint16_t time = 500) {
-        blinkEnable = enable;
+    void blinkMode(uint16_t time = 500) {
+        blinkEnable = !blinkEnable;
         blinkLEDOn = true;
         blinkTimer.reset(time);
         update();
@@ -200,9 +200,12 @@ public:
     // Update the color based on the current mode
     void update() {
         if (ledEnable) {
-            if (blinkEnable && blinkTimer) {
-                blinkLEDOn = !blinkLEDOn;
-                if (!blinkLEDOn) return;
+            if (blinkEnable) {
+               if (blinkTimer)  blinkLEDOn = !blinkLEDOn;
+               if (!blinkLEDOn) {
+                  writeValues(0, 0, 0, 0);
+                  return;
+               }
             }
 
             if (jumpEnable) {

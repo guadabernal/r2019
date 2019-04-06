@@ -39,17 +39,20 @@ void setup() {
     
     delay(500);
     comms.ledOn(0);
-    comms.ledRGBA(0, 255, 255, 255, 255);
+    comms.ledRGBA(0, 255, 0, 0, 0);
+    comms.ledRGBA(1, 255, 0, 0, 0);
     //comms.ledRGBA(0, 30, 150, 240, 0);
     //comms.ledRGBA(1, 240, 0, 240, 0);
     delay(500);
-    comms.ledOff(0);
+   // comms.ledOff(0);
     Debug.println("setup done");
     delay(2000);
     //comms.rotResetPos();
 }
 
 Timer TLed(2000);
+Timer ledChange(300);
+Timer ledDim(50);
 int TLedStatus = HIGH;
 
 Timer TController(5);
@@ -57,6 +60,7 @@ Timer TSController(30);
 
 Timer TT1(2000);
 int t1done = false;
+int dim = 50;
 
 void loop() {
   if (TLed) { 
@@ -72,11 +76,35 @@ void loop() {
     comms.readControllerStatus(); // blocking
     if (comms.controllerStatus.connected) {
       if (comms.controllerStatus.triangle) {
-        comms.ledRGBA(0, 255, 255, 255, 255);
+        comms.ledRGBA(0, 0, 255, 0, 0);
+        comms.ledRGBA(1, 0, 255, 0, 0);
         comms.rotResetPos(); // blocking
         robot.setAngle(0);
         robot.setMode(Robot::Normal);
       }
+
+      if (comms.controllerStatus.square && ledChange) { 
+        comms.ledNextMode(1, 0, 0, 255, 0);
+        comms.ledNextMode(0, 0, 0, 255, 0);
+      }
+      if (comms.controllerStatus.left && ledChange) { 
+        comms.ledBlinkMode(0);
+        comms.ledBlinkMode(1);
+      }
+      if (comms.controllerStatus.up && ledDim) {
+        dim += 3;
+        if (dim > 255) dim = 255;
+        comms.ledDim(1, dim);
+        comms.ledDim(0, dim);
+      }
+      if (comms.controllerStatus.down && ledDim) {
+        dim -= 3;
+        if (dim < 0) dim = 0;
+        comms.ledDim(1, dim);
+        comms.ledDim(0, dim);
+      }
+
+
       if (comms.controllerStatus.circle) {
         comms.rotRotate(); // blocking
         robot.setMode(Robot::Rotate);

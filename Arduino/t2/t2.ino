@@ -71,6 +71,66 @@ void loop() {
                 if (index < 2) strip[index].jumpMode(set, time);
                 break;
             }        
+            
+            //TEST//
+            case CMD_LED_RED: {
+                uint8_t index;
+                Serial1Read<uint8_t>(&index);
+                if (index < 2) strip[index].red();
+                break;
+            }
+            case CMD_LED_GREEN: {
+                uint8_t index;
+                Serial1Read<uint8_t>(&index);
+                if (index < 2) strip[index].green();
+                break;
+            }
+            case CMD_LED_BLUE: {
+                uint8_t index;
+                Serial1Read<uint8_t>(&index);
+                if (index < 2) strip[index].blue();
+                break;
+            }
+            case CMD_LED_WHITE: {
+                uint8_t index;
+                Serial1Read<uint8_t>(&index);
+                if (index < 2) strip[index].white();
+                break;
+            }
+            case CMD_LED_WHITEONLY: {
+                uint8_t index;
+                Serial1Read<uint8_t>(&index);
+                if (index < 2) strip[index].whiteOnly();
+                break;
+            }
+            case CMD_LED_WHITEFULL: {
+                uint8_t index;
+                Serial1Read<uint8_t>(&index);
+                if (index < 2) strip[index].whiteFull();
+                break;
+            }
+            case CMD_LED_DIM: {
+                uint8_t index, dim;
+                Serial1Read<uint8_t>(&index);
+                Serial1Read<uint8_t>(&dim);
+                if (index < 2) strip[index].dim(dim);
+                break;
+            }
+            case CMD_LED_BLINKMODE: {
+                uint8_t index;
+                Serial1Read<uint8_t>(&index);
+                if (index < 2) strip[index].blinkMode();
+                break;
+            }
+            
+
+            // #define CMD_LED_DIM             10
+            // #define CMD_LED_BLINKMODE       11
+            // #define CMD_LED_SMOOTHMODE      13
+            // #define CMD_LED_FADEMODE        14
+            // #define CMD_LED_FADECURRENTMODE 15
+
+
             // .. describe other commands
         }
     }

@@ -21,6 +21,9 @@
 #define CMD_LED_FADECURRENTMODE 15
 #define CMD_BATTERY_CAPACITY    16
 
+#define LED_NMODES 7
+uint8_t modes[LED_NMODES] = {3, 4, 5, 6, 7, 8, 9};
+
 // T1 Commands
 #define CMD_ROT_RESET_POS       30 
 #define CMD_ROT_DIR_ANGLE       31
@@ -72,6 +75,77 @@ public:
         uint8_t send[6]  = { CMD_LED_RGBA, strip, r, g, b, a };
         SerialWrite<uint8_t>(T2Serial, send, 6);
     }
+
+    void ledRed(uint8_t strip){
+        uint8_t send[2]  = { CMD_LED_RED, strip };
+        SerialWrite<uint8_t>(T2Serial, send, 2);
+    }
+    void ledGreen(uint8_t strip){
+        uint8_t send[2]  = { CMD_LED_GREEN, strip };
+        SerialWrite<uint8_t>(T2Serial, send, 2);
+    }
+    void ledBlue(uint8_t strip){
+        uint8_t send[2]  = { CMD_LED_BLUE, strip };
+        SerialWrite<uint8_t>(T2Serial, send, 2);
+    }
+    void ledWhite(uint8_t strip){
+        uint8_t send[2]  = { CMD_LED_WHITE, strip };
+        SerialWrite<uint8_t>(T2Serial, send, 2);
+    }
+    void ledWhiteOnly(uint8_t strip){
+        uint8_t send[2]  = { CMD_LED_WHITEONLY, strip };
+        SerialWrite<uint8_t>(T2Serial, send, 2);
+    }
+    void ledWhiteFull(uint8_t strip){
+        uint8_t send[2]  = { CMD_LED_WHITEFULL, strip };
+        SerialWrite<uint8_t>(T2Serial, send, 2);
+    }
+    void ledDim(uint8_t strip, uint8_t dim){
+        uint8_t send[3]  = { CMD_LED_DIM, strip, dim };
+        SerialWrite<uint8_t>(T2Serial, send, 3);
+    }
+    void ledBlinkMode(uint8_t strip){
+        uint8_t send[2]  = { CMD_LED_BLINKMODE, strip };
+        SerialWrite<uint8_t>(T2Serial, send, 2);
+    }
+
+    void ledNextMode(uint8_t strip, uint8_t r, uint8_t g, uint8_t b, uint8_t a){
+        currentMode[strip]++;
+        if (currentMode[strip] >= LED_NMODES) currentMode[strip] = 0;
+        Serial.println(currentMode[strip]);
+        uint8_t mode = modes[currentMode[strip]];
+        switch (mode) {
+            case 3: { 
+                ledRGBA(strip, r, g, b, a);
+                break;
+            }
+            case 4: { 
+                ledRed(strip);
+                break;
+            }
+            case 5: { 
+                ledGreen(strip);
+                break;
+            }
+            case 6: { 
+                ledBlue(strip);
+                break;
+            }
+            case 7: { 
+                ledWhite(strip);
+                break;
+            }
+            case 8: { 
+                ledWhiteOnly(strip);
+                break;
+            }
+            case 9: { 
+                ledWhiteFull(strip);
+                break;
+            }
+        }
+    }
+
     //
     // set the other led modes and battery levels
     // ....
@@ -99,6 +173,7 @@ public:
         SerialWrite<float>(T1Serial, &dangleL);
         SerialWrite<float>(T1Serial, &dangleR);
     }
+    
     //
     // set the other led modes and battery levels
     // ....
@@ -112,6 +187,7 @@ public:
     }
 
     ControllerData controllerStatus;  
+    int currentMode[2] = {0};
 protected:
             
 private:
