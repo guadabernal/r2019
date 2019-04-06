@@ -98,12 +98,12 @@ struct Robot {
 
 class RMotors {
 public:
-  enum MType { FR, FL, BR, BL};
+  enum MType { FR = 0, FL, BR, BL};
   RMotors()
-  : m{ {0, AEFR, BEFR, PWMFR, INAFR, INBFR, CSFR}
-     , {1, AEFL, BEFL, PWMFL, INAFL, INBFL, CSFL}
-     , {2, AEBR, BEBR, PWMBR, INABR, INBBR, CSBR}
-     , {3, AEBL, BEBL, PWMBL, INABL, INBBL, CSBL} }
+  : m{ {0, AEFR, BEFR, PWMFR, INAFR, INBFR, CSFR, 1}
+     , {1, AEFL, BEFL, PWMFL, INAFL, INBFL, CSFL, -1}
+     , {2, AEBR, BEBR, PWMBR, INABR, INBBR, CSBR, 1}
+     , {3, AEBL, BEBL, PWMBL, INABL, INBBL, CSBL, -1} }
   {}
 
   void updateA(uint8_t motorId) {
@@ -160,6 +160,24 @@ public:
     m[BR].goToSpeed(vr);
     m[BL].goToSpeed(vl);
   }
+
+  void goToDistance(float v, float distance) {
+    resetCounters();
+    v = abs(v);
+    m[FR].goToDistance(v, distance);
+    m[FL].goToDistance(v, distance);
+    m[BR].goToDistance(v, distance);
+    m[BL].goToDistance(v, distance);
+  }
+
+  void rotateToDistance(float v, float distance) {
+    resetCounters();
+    m[FR].goToDistance(v, -distance);
+    m[FL].goToDistance(v, distance);
+    m[BR].goToDistance(v, -distance);
+    m[BL].goToDistance(v, distance);
+  }
+  
   
  private:
   Motor m[4];  

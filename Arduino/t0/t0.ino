@@ -48,6 +48,29 @@ void setup() {
     Debug.println("setup done");
     delay(2000);
     //comms.rotResetPos();
+    //motors.goToDistance(20, -0.2);
+
+//    delay(1000);
+//    comms.rotResetPos(); // blocking
+//    robot.setAngle(0);
+//    robot.setMode(Robot::Normal);
+//    delay(1000);
+//    comms.rotRotate(); // blocking
+//    robot.setMode(Robot::Rotate);
+//    motors.goToSpeed(0, 0);
+//    delay(1000);    
+    motors.rotateToDistance(20, 0.42);
+    motors.waitForAll();
+    delay(1000);
+    motors.rotateToDistance(20, 0.42);
+    motors.waitForAll();
+    delay(1000);
+    motors.rotateToDistance(20, 0.42);
+    motors.waitForAll();
+    delay(1000);
+    motors.rotateToDistance(20, 0.42);
+    motors.waitForAll();
+    delay(1000);
 }
 
 Timer TLed(2000);

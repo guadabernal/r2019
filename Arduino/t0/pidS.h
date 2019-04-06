@@ -13,6 +13,7 @@ public:
     K compute(T input) {
         t1 = micros();
         K dt = (K(t1) - K(t0)) * 1E-6;
+        Serial.print("T = "); Serial.print(dt);
         if (dt < 1E-4) return output0;                      
         t0 = t1;
         err = target - input;   
@@ -23,6 +24,10 @@ public:
         err0 = err;
         K output = K(Kp * err + Ki * iErr + Kd * dErr);
         output = output > maxOutput ? maxOutput : output < minOutput ? minOutput : output;
+        Serial.print(" Target = "); Serial.print(target);
+        Serial.print(" Input = "); Serial.print(input);        
+        Serial.print(" Err = "); Serial.print(err);
+        Serial.print(" output = "); Serial.println(output);
         output0 = output;
         return output;
     }
@@ -35,13 +40,15 @@ public:
       iErr = 0;
       t0 = micros();
     }
-    void setTarget(T tgt) {
-       t0 = micros();
+    
+    void setTarget(T tgt, bool resetTimer = true) {
+       if (resetTimer)
+         t0 = micros();
        target = tgt;
-    }
+    }    
 
 private:
-    T target;
+    T target = 0;
     K Kp; // proportional
     K Ki; // integral
     K Kd; // derivative

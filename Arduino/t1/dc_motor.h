@@ -148,12 +148,6 @@ public:
         if (currentPWM < 35) {
           currentPWM = 0;
         }
-        Serial.print(pid.getTarget());
-        Serial.print(" ");
-        Serial.print(counter);
-        Serial.print(" ");
-        Serial.println(currentPWM);
-        
         if (abs(diff) < 10) {
           off();
           done = true;
